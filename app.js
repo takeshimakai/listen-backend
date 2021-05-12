@@ -2,6 +2,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
+import authRouter from './routes/authRouter.js';
+import userRouter from './routes/userRouter.js';
+import postRouter from './routes/postRouter.js';
+import commentRouter from './routes/commentRouter.js';
+
 dotenv.config();
 
 // Set up mongoose connection
@@ -15,5 +20,11 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/auth', authRouter);
+app.use('/api/user', userRouter);
+app.use('/api/post', postRouter);
+app.use('/api/comments', commentRouter);
 
 app.listen(5000, () => console.log('listening on port 5000'));
