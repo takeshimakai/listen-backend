@@ -4,12 +4,12 @@ import postController from '../controllers/postController.js';
 
 const router = express.Router();
 
+router.get('/', postController.getAllPosts);
+
 router.post('/', postController.savePost);
 
-router.get('/:id', postController.getPost);
+router.put('/:postId', postController.editPost);
 
-router.put('/:id', postController.editPost);
-
-router.delete('/:id', postController.deletePost);
+router.delete('/:postId', postController.deletePost);
 
 export default router;

@@ -25,9 +25,10 @@ const PostSchema = new Schema({
     required: true
   },
   title: { type: String, required: true },
-  body: { type: String, required: true },
-  datePosted: { type: Date, default: Date.now() },
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  content: { type: String, required: true },
+  datePosted: { type: Date, required: true },
+  dateEdited: Date,
+  postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 });
 
 export default mongoose.model('Post', PostSchema);
