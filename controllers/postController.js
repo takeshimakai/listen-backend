@@ -7,8 +7,12 @@ const { body, validationResult } = expressValidator;
 
 // Get all posts
 const getAllPosts = async (req, res, next) => {
-  const posts = await Post.find().populate('postedBy', 'profile.username');
-  res.status(200).json(posts);
+  try {
+    const posts = await Post.find().populate('postedBy', 'profile.username');
+    res.status(200).json(posts);
+  } catch (err) {
+    next(err);
+  }
 };
 
 // Save new post
@@ -26,22 +30,26 @@ const savePost = [
   .escape(),
 
   async (req, res, next) => {
-    const errors = validationResult(req);
+    try {
+      const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      res.status(400).json(errors);
-    } else {
-      const post = new Post({
-        topics: req.body.topics,
-        title: req.body.title,
-        content: req.body.content,
-        postedBy: req.body.userId,
-        datePosted: Date.now()
-      });
+      if (!errors.isEmpty()) {
+        res.status(400).json(errors);
+      } else {
+        const post = new Post({
+          topics: req.body.topics,
+          title: req.body.title,
+          content: req.body.content,
+          postedBy: req.body.userId,
+          datePosted: Date.now()
+        });
 
-      await post.save();
+        await post.save();
 
-      res.sendStatus(200);
+        res.sendStatus(200);
+      }
+    } catch (err) {
+      next(err);
     }
   }
 ];
@@ -61,23 +69,27 @@ const editPost = [
   .escape(),
 
   async (req, res, next) => {
-    const errors = validationResult(req);
+    try {
+      const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      res.status(400).json(errors);
-    } else {
-      const post = new Post({
-        _id: req.params.postId,
-        topics: req.body.topics,
-        title: req.body.title,
-        content: req.body.content,
-        dateEdited: Date.now(),
-        postedBy: req.body.userId
-      });
+      if (!errors.isEmpty()) {
+        res.status(400).json(errors);
+      } else {
+        const post = new Post({
+          _id: req.params.postId,
+          topics: req.body.topics,
+          title: req.body.title,
+          content: req.body.content,
+          dateEdited: Date.now(),
+          postedBy: req.body.userId
+        });
 
-      const updatedPost = await Post.findByIdAndUpdate(req.params.postId, post, { new: true });
+        const updatedPost = await Post.findByIdAndUpdate(req.params.postId, post, { new: true });
 
-      res.status(200).json(updatedPost);
+        res.status(200).json(updatedPost);
+      }
+    } catch (err) {
+      next(err);
     }
   }
 ];
