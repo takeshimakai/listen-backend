@@ -3,9 +3,10 @@ const { Schema } = mongoose;
 
 const CommentSchema = new Schema({
   postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  body: { type: String, required: true },
-  datePosted: { type: Date, default: Date.now() }
+  postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  content: { type: String, required: true },
+  datePosted: Date,
+  dateEdited: Date
 });
 
 export default mongoose.model('Comment', CommentSchema);
