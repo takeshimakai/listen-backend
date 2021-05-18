@@ -5,7 +5,7 @@ const UserSchema = new Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
   profile: {
-    username: { type: String, required: true },
+    username: String,
     age: Number,
     gender: { type: String, enum: ['Female', 'Male', 'Non-binary', 'Other'] },
     interests: { type: [String], default: undefined },

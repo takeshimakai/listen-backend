@@ -1,5 +1,8 @@
+import './config/passport.js';
+
 import express from 'express';
 import mongoose from 'mongoose';
+import passport from 'passport';
 import dotenv from 'dotenv';
 
 import authRouter from './routes/authRouter.js';
@@ -19,6 +22,7 @@ db.once('open', () => console.log('MongoDB connected'));
 
 const app = express();
 
+app.use(passport.initialize());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
