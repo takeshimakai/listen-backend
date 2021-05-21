@@ -16,24 +16,22 @@ const getCurrentUserProfile = async (req, res, next) => {
 
 const getProfile = async (req, res, next) => {
   try {
-    const { profile } = await User.findById(req.params.userId, 'profile').lean();
+    const user = await User.findById(req.params.userId, 'profile').lean();
 
-    let filteredProfile;
-
-    if (profile.hidden) {
-      for (const key in profile) {
-        if (!profile.hidden.includes(key) && key !== 'hidden') {
-          filteredProfile = {
-            ...filteredProfile,
-            [key]: profile[key]
+    if (user.profile.hidden) {
+      const filtered = { _id: req.params.userId };
+      for (const key in user.profile) {
+        if (!user.profile.hidden.includes(key) && key !== 'hidden') {
+          filtered.profile = {
+            ...filtered.profile,
+            [key]: user.profile[key]
           }
         }
       }
-    } else {
-      filteredProfile = profile;
+      return res.status(200).json(filtered);
     }
 
-    return res.status(200).json(filteredProfile);
+    return res.status(200).json(user);
   } catch (err) {
     return next(err);
   }
@@ -85,10 +83,6 @@ const saveProfile = [
     }
   }
 ];
-
-const deleteProfile = (req, res, next) => {
-  res.send('delete profile');
-};
 
 export default {
   getCurrentUserProfile,
