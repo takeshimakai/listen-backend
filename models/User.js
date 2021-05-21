@@ -6,7 +6,7 @@ const UserSchema = new Schema({
   password: { type: String, required: true },
   profile: {
     username: String,
-    age: Number,
+    dob: Date,
     gender: { type: String, enum: ['Female', 'Male', 'Non-binary', 'Other'] },
     interests: { type: [String], default: undefined },
     problemTopics: {
@@ -28,6 +28,15 @@ const UserSchema = new Schema({
         'Obsessive-compulsive disorders',
         'Personality disorders',
         'Other'
+      ]
+    },
+    hidden: {
+      type: [String],
+      enum: [
+        'dob',
+        'gender',
+        'interests',
+        'problemTopics'
       ]
     }
   }

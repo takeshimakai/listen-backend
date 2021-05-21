@@ -4,12 +4,12 @@ import userController from '../controllers/userController.js';
 
 const router = express.Router();
 
-router.get('/:id', userController.getProfile);
+router.get('/current/:userId', userController.getCurrentUserProfile);
 
-router.post('/:id', userController.saveProfile);
+router.get('/:userId', userController.getProfile);
 
-router.put('/:id', userController.editProfile);
+router.post('/', userController.saveProfile);
 
-router.delete('/:id', userController.deleteProfile);
+router.put('/:userId', userController.saveProfile);
 
 export default router;
