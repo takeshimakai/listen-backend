@@ -84,8 +84,16 @@ const saveProfile = [
   }
 ];
 
+const deleteUser = (req, res, next) => {
+  User
+  .findByIdAndDelete(req.params.userId)
+  .then(res.sendStatus(200))
+  .catch(err => next(err));
+};
+
 export default {
   getCurrentUserProfile,
   getProfile,
-  saveProfile
+  saveProfile,
+  deleteUser
 };
