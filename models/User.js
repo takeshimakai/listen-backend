@@ -4,11 +4,12 @@ const { Schema } = mongoose;
 const UserSchema = new Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
+  availableForChat: { type: Boolean, default: false },
   profile: {
     username: String,
     dob: Date,
     gender: { type: String, enum: ['Female', 'Male', 'Non-binary', 'Other'] },
-    interests: { type: [String], default: undefined },
+    interests: { type: [String] },
     problemTopics: {
       type: [String],
       enum: [

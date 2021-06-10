@@ -87,9 +87,9 @@ const login = [
           return res.status(401).json({ info });
         }
   
-        const token = await jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET);
+        const token = await jwt.sign({ id: user._id, username: user.profile.username }, process.env.JWT_SECRET);
   
-        return res.json({ token });
+        return res.status(200).json({ token });
       } catch (err) {
         return next(err);
       }
