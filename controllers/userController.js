@@ -8,8 +8,9 @@ const getProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.userId, 'profile').lean();
 
-    if (req.user.id !== req.params.userId && user.profile.hidden) {
-      const filtered = { _id: req.params.userId };
+    // Hide info if current user is fetching other user's profile
+    if (req.user.id !== user._id && user.profile.hidden) {
+      const filtered = { _id: user._id };
       for (const key in user.profile) {
         if (!user.profile.hidden.includes(key) && key !== 'hidden') {
           filtered.profile = {
@@ -20,7 +21,7 @@ const getProfile = async (req, res, next) => {
       }
       return res.status(200).json(filtered);
     }
-    
+
     return res.status(200).json(user);
   } catch (err) {
     return next(err);
@@ -48,28 +49,22 @@ const saveProfile = [
         return res.status(400).json(errors);
       }
 
-      const profile = new User({
-        profile: {
+      const profile = {
           username: req.body.username,
           dob: req.body.dob,
           gender: req.body.gender,
           interests: req.body.interests,
           problemTopics: req.body.problemTopics,
           hidden: req.body.hidden
-        }
-      });
+      };
 
-      if (req.body.formType === 'edit') {
-        profile._id = req.params.userId;
-        const updatedProfile = await User.findByIdAndUpdate(req.params.userId,
-          profile,
-          { new: true });
+      const updated = await User.findByIdAndUpdate(
+        req.params.userId,
+        { profile },
+        { new: true }
+      );
 
-        return res.status(200).json(updatedProfile);
-      }
-      await profile.save();
-
-      return res.status(200).json(profile);
+      return res.status(200).json(updated);
     } catch (err) {
       return next(err);
     }

@@ -34,60 +34,35 @@ const savePost = [
       const errors = validationResult(req);
 
       if (!errors.isEmpty()) {
-        res.status(400).json(errors);
-      } else {
-        const post = new Post({
-          topics: req.body.topics,
-          title: req.body.title,
-          content: req.body.content,
-          postedBy: req.body.userId,
-          datePosted: Date.now()
-        });
-
-        await post.save();
-
-        res.sendStatus(200);
+        return res.status(400).json(errors);
       }
-    } catch (err) {
-      next(err);
-    }
-  }
-];
 
-// Save edited post
-const editPost = [
-  body('title')
-  .trim()
-  .notEmpty()
-  .withMessage('Title is required.')
-  .escape(),
+      let post;
 
-  body('content')
-  .trim()
-  .notEmpty()
-  .withMessage('Content is required.')
-  .escape(),
-
-  async (req, res, next) => {
-    try {
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        res.status(400).json(errors);
-      } else {
-        const post = new Post({
-          _id: req.params.postId,
+      if (req.body.formType === 'edit') {
+        post = {
           topics: req.body.topics,
           title: req.body.title,
           content: req.body.content,
           dateEdited: Date.now(),
-          postedBy: req.body.userId
-        });
+        };
 
-        const updatedPost = await Post.findByIdAndUpdate(req.params.postId, post, { new: true });
-
-        res.status(200).json(updatedPost);
+        const updated = await Post.findByIdAndUpdate(req.params.postId, post, { new: true });
+        
+        return res.status(200).json(updated);
       }
+      
+      post = new Post({
+        topics: req.body.topics,
+        title: req.body.title,
+        content: req.body.content,
+        datePosted: Date.now(),
+        postedBy: req.body.postedBy
+      });
+
+      await post.save();
+
+      return res.status(200).json(post);
     } catch (err) {
       next(err);
     }
@@ -106,6 +81,5 @@ const deletePost = (req, res, next) => {
 export default {
   getAllPosts,
   savePost,
-  editPost,
   deletePost
 };

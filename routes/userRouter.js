@@ -6,8 +6,6 @@ const router = express.Router();
 
 router.get('/:userId', userController.getProfile);
 
-router.post('/:userId', userController.saveProfile);
-
 router.put('/:userId', userController.saveProfile);
 
 router.delete('/:userId', userController.deleteUser);

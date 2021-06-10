@@ -26,7 +26,7 @@ const PostSchema = new Schema({
   },
   title: { type: String, required: true },
   content: { type: String, required: true },
-  datePosted: { type: Date, required: true },
+  datePosted: Date,
   dateEdited: Date,
   postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }
 });

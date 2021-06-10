@@ -8,8 +8,8 @@ router.get('/:postId', commentController.getComments);
 
 router.post('/:postId', commentController.saveComment);
 
-router.put('/:commentId', commentController.editComment);
+router.put('/:commentId', commentController.saveComment);
 
-router.delete('/:commendId', commentController.deleteComment);
+router.delete('/:commentId', commentController.deleteComment);
 
 export default router;

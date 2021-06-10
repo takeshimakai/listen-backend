@@ -27,52 +27,31 @@ const saveComment = [
 
       if (!errors.isEmpty()) {
         res.status(400).json(errors);
-      } else {
-        const comment = new Comment({
-          postId: req.params.postId,
-          postedBy: req.body.userId,
-          content: req.body.content,
-          datePosted: Date.now()
-        });
-
-        await comment.save();
-
-        res.sendStatus(200);
       }
-    } catch (err) {
-      next(err);
-    }
-  }
-];
 
+      let comment;
 
-// Save edited comment
-const editComment = [
-  body('content')
-  .trim()
-  .notEmpty()
-  .withMessage('Comment is required.')
-  .escape(),
-
-  async (req, res, next) => {
-    try {
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        res.status(400).json(errors);
-      } else {
-        const comment = new Comment({
-          _id: req.params.commentId,
-          postId: req.params.postId,
-          postedBy: req.body.userId,
+      if (req.body.formType === 'edit') {
+        comment = {
           content: req.body.content,
           dateEdited: Date.now()
-        });
+        };
 
-        const updatedComment = await Comment.findByIdAndUpdate(req.params.commentId, comment, { new: true });
+        const updated = Comment.findByIdAndUpdate(req.params.commentId, comment, { new: true });
 
-        res.status(200).json(updatedComment);
+        return res.status(200).json(updated);
       }
+
+      comment = new Comment({
+        postId: req.params.postId,
+        postedBy: req.body.userId,
+        content: req.body.content,
+        datePosted: Date.now()
+      });
+
+      await comment.save();
+
+      res.status(200).json(comment);
     } catch (err) {
       next(err);
     }
@@ -90,6 +69,5 @@ const deleteComment = (req, res, next) => {
 export default {
   getComments,
   saveComment,
-  editComment,
   deleteComment
 };
