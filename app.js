@@ -6,12 +6,12 @@ import passport from 'passport';
 import cors from 'cors';
 import { createServer } from 'http';
 
-import socket from './socket.js';
+import socket from './socket.io/socket.js';
 
 import authRouter from './routes/authRouter.js';
 import userRouter from './routes/userRouter.js';
-import postRouter from './routes/postRouter.js';
-import commentRouter from './routes/commentRouter.js';
+import postRouter from './routes/forum/postRouter.js';
+import commentRouter from './routes/forum/commentRouter.js';
 
 const app = express();
 

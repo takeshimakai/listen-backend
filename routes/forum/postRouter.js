@@ -1,6 +1,6 @@
 import express from 'express';
 
-import postController from '../controllers/postController.js';
+import postController from '../../controllers/forum/postController.js';
 
 const router = express.Router();
 
