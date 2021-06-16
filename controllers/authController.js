@@ -43,8 +43,10 @@ const signUp = [
         const hashedPw = await bcrypt.hash(req.body.password, 10);
         
         const newUser = new User({
-          email: req.body.email,
-          password: hashedPw
+          auth: {
+            email: req.body.email,
+            password: hashedPw
+          }
         });
   
         await newUser.save();

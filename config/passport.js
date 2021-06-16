@@ -18,13 +18,13 @@ passport.use('login', new localStrategy({
 },
 async (username, password, done) => {
   try {
-    const user = await User.findOne({ email: username });
+    const user = await User.findOne({ 'auth.email': username });
 
     if (!user) {
       return done(null, false, { message: 'Incorrect email' });
     }
 
-    const isValidPw = await bcrypt.compare(password, user.password);
+    const isValidPw = await bcrypt.compare(password, user.auth.password);
 
     if (!isValidPw) {
       return done(null, false, { message: 'Incorrect password' });

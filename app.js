@@ -12,6 +12,7 @@ import authRouter from './routes/authRouter.js';
 import userRouter from './routes/userRouter.js';
 import postRouter from './routes/forum/postRouter.js';
 import commentRouter from './routes/forum/commentRouter.js';
+import chatRouter from './routes/chatRouter.js';
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', passport.authenticate('jwt', { session: false }), userRouter);
 app.use('/api/post', passport.authenticate('jwt', { session: false }), postRouter);
 app.use('/api/comments', passport.authenticate('jwt', { session: false }), commentRouter);
+app.use('/api/chat', passport.authenticate('jwt', { session: false }), chatRouter);
 
 const httpServer = createServer(app);
 socket(httpServer);

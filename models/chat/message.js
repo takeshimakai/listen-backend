@@ -2,10 +2,9 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const MessageSchema = new Schema({
-  sessionID: { type: Schema.Types.ObjectId, ref: 'Session', required: true },
+  room: { type: Schema.Types.ObjectId, ref: 'Room', required: true },
   message: { type: String, required: true },
-  from: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  to: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  sentBy: { type: String, required: true },
   timestamp: { type: Date, default: Date.now() }
 });
 

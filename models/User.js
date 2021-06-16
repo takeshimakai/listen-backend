@@ -2,9 +2,23 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  availableForChat: { type: Boolean, default: false },
+  auth: {
+    email: { type: String, required: true },
+    password: { type: String, required: true }
+  },
+  chat: {
+    room: { type: Schema.Types.ObjectId, ref: 'Room' },
+    isAvailable: { type: Boolean, default: false },
+    filters: {
+      age: {
+        min: Number,
+        max: Number
+      },
+      gender: String,
+      interests: { type: Boolean, default: false },
+      problemTopics: { type: Boolean, default: false }
+    }
+  },
   profile: {
     username: String,
     dob: Date,
@@ -41,6 +55,17 @@ const UserSchema = new Schema({
       ]
     }
   }
+});
+
+UserSchema.virtual('age').get(() => {
+  const today = new Date();
+  const dob = new Date(this.dob);
+  const age = today.getFullYear() - dob.getFullYear();
+  const month = today.getMonth() - dob.getMonth();
+  if (month < 0 || (month === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
 });
 
 export default mongoose.model('User', UserSchema);
