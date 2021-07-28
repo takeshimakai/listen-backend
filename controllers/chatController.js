@@ -3,84 +3,69 @@ import expressValidator from 'express-validator';
 import User from '../models/user.js';
 import Room from '../models/chat/room.js';
 
-import usersAreAvailable from '../utils/usersAreAvailable.js';
-import findMatch from '../utils/findMatch.js';
+import findListener from '../utils/findListener.js';
+import createFilters from '../utils/createFilters.js';
 
-const initializeChat = async (req, res, next) => {
+const initializeTalker = async (req, res, next) => {
   try {
-    // Start by checking for available users
-    if (!usersAreAvailable()) {
-      return res.status(200).json({ awaitConnection: false, message: 'Users are currently unavailable.' });
+    const filters = createFilters(req.body);
+    let match = await findListener(req.user.id, filters);
+
+    let numOfTries = 0;
+    let room;
+
+    while (numOfTries < 10 && !match) {
+      numOfTries++;
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      match = await findListener(req.user.id, filters);
     }
 
-    const user = await User.findByIdAndUpdate(req.user._id, {
-      chat: {
-        isAvailable: true,
-        filters: {
-          age: {
-            min: req.body.age.min,
-            max: req.body.age.max
-          },
-          gender: req.body.gender,
-          interests: req.body.interests,
-          problemTopics: req.body.problemTopics
-        }
-      },
-    }, { new: true, select: 'profile -profile.hidden' });
-
-    // Make array of users that match criteria
-    const match = await findMatch(user);
-
-    if (!match) {
-      const room = new Room();
-      user.chat.room = room._id;
-      await user.save();
-      return res.status(200).json({
-        room: room._id,
-        awaitConnection: true,
-        message: 'Users available but no match.'
-      });
+    if (match) {
+      room = new Room({ users: [req.user.id, match._id] });
+      await room.save();
     }
-    
-    user.chat.room = match.chat.room;
-    await user.save();
 
     return res.status(200).json({
-      room: user.chat.room,
-      awaitConnection: false,
-      message: 'Match found. Room created.'
-  });
+      match: {
+        id: match._id,
+        username: match.username
+      },
+      room
+    });
   } catch (err) {
     next(err);
   }
-};
+}
 
-const terminateChat = async (req, res, next) => {
+const changeListenerAvailability = (req, res, next) => {
+  User
+  .findById(req.user.id)
+  .then(user => {
+    user.chat.isListener ? user.chat.isListener = false : user.chat.isListener = true;
+    user.save();
+  })
+  .then(res.sendStatus(200))
+  .catch(err => next(err));
+}
+
+const leaveChat = async (req, res, next) => {
   try {
-    await User.findByIdAndUpdate(req.user._id, {
-      chat: {
-        room: undefined,
-        filters: {
-          age: {
-            min: undefined,
-            max: undefined
-          },
-          gender: undefined,
-          interests: undefined,
-          problemTopics: undefined
-        }
-      }
-    });
+    await User.findByIdAndUpdate(req.user.id, { 'chat.isListener': false });
 
-    await Room.findByIdAndDelete(req.params.roomId);
+    const room = await Room.findByIdAndUpdate(req.params.roomId, { $pull: { users: req.user.id } }, { new: true });
 
-    return res.status(200).json({ message: 'Chat terminated.' });
+    if (room.users.length < 2) {
+      await Room.findByIdAndDelete(req.params.roomId);
+    }
+
+    return res.sendStatus(200);
   } catch (err) {
     next(err);
   }
 };
 
 export default {
-  initializeChat,
-  terminateChat
+  initializeTalker,
+  changeListenerAvailability,
+  leaveChat
 };

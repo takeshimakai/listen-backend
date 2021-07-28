@@ -7,17 +7,7 @@ const UserSchema = new Schema({
     password: { type: String, required: true }
   },
   chat: {
-    room: { type: Schema.Types.ObjectId, ref: 'Room' },
-    isAvailable: { type: Boolean, default: false },
-    filters: {
-      age: {
-        min: Number,
-        max: Number
-      },
-      gender: String,
-      interests: { type: Boolean, default: false },
-      problemTopics: { type: Boolean, default: false }
-    }
+    isListener: { type: Boolean, default: false },
   },
   profile: {
     username: String,

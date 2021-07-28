@@ -4,8 +4,10 @@ import chatController from '../controllers/chatController.js';
 
 const router = express.Router();
 
-router.post('/', chatController.initializeChat);
+router.post('/talk', chatController.initializeTalker);
 
-router.post('/:roomId', chatController.terminateChat);
+router.post('/listen', chatController.changeListenerAvailability);
+
+router.post('/:roomId', chatController.leaveChat);
 
 export default router;

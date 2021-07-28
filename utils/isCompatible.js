@@ -1,8 +1,6 @@
 import createFilters from './createFilters.js';
 
-const isCompatible = (user, foundUser) => {
-  const filters = createFilters(foundUser);
-
+const isCompatible = (user, filters) => {
   if (
     (filters.dob.min === null || user.profile.dob <= filters.dob.min)
     && (filters.dob.max === null || user.profile.dob >= filters.dob.max)
