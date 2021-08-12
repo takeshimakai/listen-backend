@@ -8,11 +8,11 @@ import { createServer } from 'http';
 
 import socket from './socket.io/socket.js';
 
-import authRouter from './routes/authRouter.js';
-import userRouter from './routes/userRouter.js';
-import postRouter from './routes/forum/postRouter.js';
-import commentRouter from './routes/forum/commentRouter.js';
-import chatRouter from './routes/chatRouter.js';
+import authRouter from './routes/auth.js';
+import userRouter from './routes/user.js';
+import postRouter from './routes/forum/post.js';
+import commentRouter from './routes/forum/comment.js';
+import chatRouter from './routes/chat.js';
 
 const app = express();
 
