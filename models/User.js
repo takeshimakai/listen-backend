@@ -6,8 +6,16 @@ const UserSchema = new Schema({
     email: { type: String, required: true },
     password: { type: String, required: true }
   },
+  friends: {
+    accepted: { type: [Schema.Types.ObjectId], ref: 'User' },
+    receivedRequest: { type: [Schema.Types.ObjectId], ref: 'User' },
+    sentRequest: { type: [Schema.Types.ObjectId], ref: 'User' }
+  },
   chat: {
     isListener: { type: Boolean, default: false },
+  },
+  forum: {
+    pinned: { type: [Schema.Types.ObjectId], ref: 'Post' }
   },
   profile: {
     username: String,

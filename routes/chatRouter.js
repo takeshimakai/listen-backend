@@ -1,13 +1,13 @@
 import express from 'express';
 
-import chatController from '../controllers/chatController.js';
+import chat from '../controllers/chat.js';
 
 const router = express.Router();
 
-router.post('/talk', chatController.initializeTalker);
+router.post('/talk', chat.initializeTalker);
 
-router.post('/listen', chatController.changeListenerAvailability);
+router.post('/listen', chat.changeListenerAvailability);
 
-router.post('/:roomId', chatController.leaveChat);
+router.post('/:roomId', chat.leaveChat);
 
 export default router;

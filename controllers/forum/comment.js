@@ -51,7 +51,7 @@ const saveComment = [
 
       await comment.save();
 
-      res.status(200).json(comment);
+      return res.status(200).json(comment);
     } catch (err) {
       next(err);
     }

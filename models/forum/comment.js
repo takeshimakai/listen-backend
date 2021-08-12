@@ -2,7 +2,8 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const CommentSchema = new Schema({
-  postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
+  commentId: { type: Schema.Types.ObjectId, ref: 'Comment' },
+  postId: { type: Schema.Types.ObjectId, ref: 'Post' },
   postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, required: true },
   datePosted: Date,

@@ -1,15 +1,15 @@
 import express from 'express';
 
-import postController from '../../controllers/forum/postController.js';
+import post from '../../controllers/forum/post.js';
 
 const router = express.Router();
 
-router.get('/', postController.getAllPosts);
+router.get('/', post.getAllPosts);
 
-router.post('/', postController.savePost);
+router.post('/', post.savePost);
 
-router.put('/:postId', postController.savePost);
+router.put('/:postId', post.savePost);
 
-router.delete('/:postId', postController.deletePost);
+router.delete('/:postId', post.deletePost);
 
 export default router;
