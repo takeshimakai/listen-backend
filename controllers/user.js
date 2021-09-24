@@ -10,11 +10,11 @@ const getProfile = async (req, res, next) => {
 
     // Hide info if current user is fetching other user's profile
     if (req.user.id !== user._id && user.profile.hidden) {
-      const filtered = { _id: user._id };
+      let filtered = { _id: user._id };
       for (const key in user.profile) {
         if (!user.profile.hidden.includes(key) && key !== 'hidden') {
-          filtered.profile = {
-            ...filtered.profile,
+          filtered = {
+            ...filtered,
             [key]: user.profile[key]
           }
         }
@@ -67,7 +67,7 @@ const saveProfile = [
   body('interests')
   .trim()
   .escape()
-  .customSanitizer(value => value.toLowerCase().split(',')),
+  .customSanitizer(value => value.toLowerCase().split(/\s*(?:,|$)\s*/)),
 
   async (req, res, next) => {
     try {
@@ -82,7 +82,7 @@ const saveProfile = [
         {
           'profile.dob': req.body.dob,
           'profile.gender': req.body.gender,
-          'profile.interest': req.body.interests,
+          'profile.interests': req.body.interests,
           'profile.problemTopics': req.body.problemTopics,
           'profile.hidden': req.body.hidden
         },
