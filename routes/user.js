@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.get('/:userId', user.getProfile);
 
-router.put('/:userId', user.saveProfile);
+router.put('/', user.saveProfile);
 
-router.delete('/:userId', user.deleteUser);
+router.delete('/', user.deleteUser);
 
 export default router;

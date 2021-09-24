@@ -59,7 +59,7 @@ const saveProfile = [
       };
 
       const updated = await User.findByIdAndUpdate(
-        req.params.userId,
+        req.user.id,
         { profile },
         { new: true }
       );
@@ -73,7 +73,7 @@ const saveProfile = [
 
 const deleteUser = (req, res, next) => {
   User
-  .findByIdAndDelete(req.params.userId)
+  .findByIdAndDelete(req.user.id)
   .then(res.sendStatus(200))
   .catch(err => next(err));
 };

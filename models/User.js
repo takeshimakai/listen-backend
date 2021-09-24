@@ -8,8 +8,8 @@ const UserSchema = new Schema({
   },
   friends: {
     accepted: { type: [Schema.Types.ObjectId], ref: 'User' },
-    receivedRequest: { type: [Schema.Types.ObjectId], ref: 'User' },
-    sentRequest: { type: [Schema.Types.ObjectId], ref: 'User' }
+    received: { type: [Schema.Types.ObjectId], ref: 'User' },
+    sent: { type: [Schema.Types.ObjectId], ref: 'User' }
   },
   chat: {
     isListener: { type: Boolean, default: false },
