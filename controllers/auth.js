@@ -16,9 +16,11 @@ const signUp = [
   .isEmail()
   .withMessage('Please enter a valid email')
   .custom(value => {
-    return User.findOne({ email: value }).then(user => {
-      if (user) {
-        return Promise.reject('E-mail already in use');
+    return User
+      .findOne({ 'auth.email': value })
+      .then(user => {
+        if (user) {
+          return Promise.reject('E-mail already in use');
       };
     });
   }),
