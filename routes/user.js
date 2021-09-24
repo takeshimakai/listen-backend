@@ -8,6 +8,8 @@ router.get('/:userId', user.getProfile);
 
 router.put('/', user.saveProfile);
 
+router.put('/username', user.saveUsername);
+
 router.delete('/', user.deleteUser);
 
 export default router;

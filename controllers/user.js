@@ -28,14 +28,42 @@ const getProfile = async (req, res, next) => {
   }
 };
 
-const saveProfile = [
+const saveUsername = [
   body('username')
   .notEmpty()
   .withMessage('Username is required')
   .custom(value => !/\s/.test(value))
-  .withMessage('No spaces are allowed in the username')
-  .escape(),
+  .withMessage('No spaces allowed in the username')
+  .isAlphanumeric()
+  .withMessage('Must contain only letters and numbers')
+  .custom(value => {
+    return User
+      .findOne({ 'profile.username': value })
+      .then(user => {
+        if (user) {
+          return Promise.reject('Username already in use');
+        }
+      })
+  }),
 
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json(errors);
+      }
+
+      await User.findByIdAndUpdate(req.user.id, { 'profile.username': req.body.username });
+
+      res.sendStatus(200);
+    } catch (err) {
+      next(err);
+    }
+  }
+]
+
+const saveProfile = [
   body('interests')
   .trim()
   .escape()
@@ -49,18 +77,15 @@ const saveProfile = [
         return res.status(400).json(errors);
       }
 
-      const profile = {
-          username: req.body.username,
-          dob: req.body.dob,
-          gender: req.body.gender,
-          interests: req.body.interests,
-          problemTopics: req.body.problemTopics,
-          hidden: req.body.hidden
-      };
-
       const updated = await User.findByIdAndUpdate(
         req.user.id,
-        { profile },
+        {
+          'profile.dob': req.body.dob,
+          'profile.gender': req.body.gender,
+          'profile.interest': req.body.interests,
+          'profile.problemTopics': req.body.problemTopics,
+          'profile.hidden': req.body.hidden
+        },
         { new: true }
       );
 
@@ -80,6 +105,7 @@ const deleteUser = (req, res, next) => {
 
 export default {
   getProfile,
+  saveUsername,
   saveProfile,
   deleteUser
 };
