@@ -22,7 +22,8 @@ const PostSchema = new Schema({
       'Personality disorders',
       'Other'
     ],
-    required: true
+    required: true,
+    default: undefined
   },
   title: { type: String, required: true },
   content: { type: String, required: true },

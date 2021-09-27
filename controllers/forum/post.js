@@ -17,6 +17,52 @@ const getAllPosts = async (req, res, next) => {
 
 // Save new post
 const savePost = [
+  body('topics')
+  .notEmpty()
+  .withMessage('Please select topics'),
+
+  body('title')
+  .trim()
+  .notEmpty()
+  .withMessage('Title is required')
+  .escape(),
+
+  body('content')
+  .trim()
+  .notEmpty()
+  .withMessage('Content is required')
+  .escape(),
+
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json(errors);
+      }
+      
+      const post = new Post({
+        topics: req.body.topics,
+        title: req.body.title,
+        content: req.body.content,
+        datePosted: Date.now(),
+        postedBy: req.user.id
+      });
+
+      await post.save();
+
+      return res.status(200).json(post);
+    } catch (err) {
+      next(err);
+    }
+  }
+];
+
+const editPost = [
+  body('topics')
+  .notEmpty()
+  .withMessage('Please select topics'),
+
   body('title')
   .trim()
   .notEmpty()
@@ -37,28 +83,16 @@ const savePost = [
         return res.status(400).json(errors);
       }
 
-      let post;
+      const post = await Post.findById(req.params.postId);
 
-      if (req.body.formType === 'edit') {
-        post = {
-          topics: req.body.topics,
-          title: req.body.title,
-          content: req.body.content,
-          dateEdited: Date.now(),
-        };
-
-        const updated = await Post.findByIdAndUpdate(req.params.postId, post, { new: true });
-        
-        return res.status(200).json(updated);
+      if (post.postedBy.toString() !== req.user.id) {
+        return res.status(401).json({ msg: 'You are not authorized to edit this post'});
       }
-      
-      post = new Post({
-        topics: req.body.topics,
-        title: req.body.title,
-        content: req.body.content,
-        datePosted: Date.now(),
-        postedBy: req.body.postedBy
-      });
+
+      post.topics = req.body.topics;
+      post.title = req.body.title;
+      post.content = req.body.content;
+      post.dateEdited = Date.now();
 
       await post.save();
 
@@ -67,7 +101,7 @@ const savePost = [
       next(err);
     }
   }
-];
+]
 
 const deletePost = (req, res, next) => {
   Promise.all([
@@ -81,5 +115,6 @@ const deletePost = (req, res, next) => {
 export default {
   getAllPosts,
   savePost,
+  editPost,
   deletePost
 };
