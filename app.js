@@ -9,9 +9,9 @@ import { createServer } from 'http';
 import socket from './socket.io/socket.js';
 
 import authRouter from './routes/auth.js';
-import userRouter from './routes/user.js';
-import postRouter from './routes/forum/post.js';
-import commentRouter from './routes/forum/comment.js';
+import usersRouter from './routes/users.js';
+import postsRouter from './routes/forum/posts.js';
+import commentsRouter from './routes/forum/comments.js';
 import chatRouter from './routes/chat.js';
 import friendsRouter from './routes/friends.js';
 
@@ -24,9 +24,9 @@ app.use(cors());
 
 // Routes
 app.use('/api/auth', authRouter);
-app.use('/api/user', passport.authenticate('jwt', { session: false }), userRouter);
-app.use('/api/post', passport.authenticate('jwt', { session: false }), postRouter);
-app.use('/api/comments', passport.authenticate('jwt', { session: false }), commentRouter);
+app.use('/api/users', passport.authenticate('jwt', { session: false }), usersRouter);
+app.use('/api/posts', passport.authenticate('jwt', { session: false }), postsRouter);
+app.use('/api/comments', passport.authenticate('jwt', { session: false }), commentsRouter);
 app.use('/api/chat', passport.authenticate('jwt', { session: false }), chatRouter);
 app.use('/api/friends', passport.authenticate('jwt', { session: false }), friendsRouter);
 
