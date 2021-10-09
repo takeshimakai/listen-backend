@@ -81,24 +81,32 @@ const login = [
       return res.status(400).json({ errors });
     }
 
-    passport.authenticate('login', { session: false }, async (err, user, info) => {
-      try {
-        if (err) {
-          return next(err);
-        }
-  
-        if (!user) {
-          return res.status(401).json({ info });
-        }
-  
-        const token = jwt.sign({ id: user._id, username: user.profile.username }, process.env.JWT_SECRET);
-  
-        return res.status(200).json({ token });
-      } catch (err) {
+    passport.authenticate('login', { session: false }, (err, user, info) => {
+      if (err) {
         return next(err);
       }
+
+      if (!user) {
+        return res.status(401).json({ info });
+      }
+
+      const token = jwt.sign({ id: user._id, username: user.profile.username }, process.env.JWT_SECRET);
+
+      return res.status(200).json({ token });
     })(req, res);
   }
 ];
 
-export default { signUp, login };
+const googleLogin = (req, res, next) => {
+  passport.authenticate('google', { session: false }, (err, user) => {
+    if (err) {
+      return next(err);
+    }
+
+    const token = jwt.sign({ id: user._id, username: user.profile.username }, process.env.JWT_SECRET);
+
+    return res.status(200).json(token);
+  })(req, res);
+}
+
+export default { signUp, login, googleLogin };

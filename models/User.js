@@ -3,8 +3,9 @@ const { Schema } = mongoose;
 
 const UserSchema = new Schema({
   auth: {
-    email: { type: String, required: true },
-    password: { type: String, required: true }
+    email: String,
+    password: String,
+    googleId: String
   },
   friends: {
     accepted: { type: [Schema.Types.ObjectId], ref: 'User' },
