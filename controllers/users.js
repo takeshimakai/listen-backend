@@ -1,4 +1,5 @@
 import expressValidator from 'express-validator';
+import jwt from 'jsonwebtoken';
 
 import User from '../models/user.js';
 
@@ -56,7 +57,9 @@ const saveUsername = [
 
       await User.findByIdAndUpdate(req.user.id, { 'profile.username': req.body.username });
 
-      res.sendStatus(200);
+      const token = jwt.sign({ id: req.user.id, username: req.body.username }, process.env.JWT_SECRET);
+
+      return res.status(200).json({ token });
     } catch (err) {
       next(err);
     }
