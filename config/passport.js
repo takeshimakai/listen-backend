@@ -49,22 +49,29 @@ passport.use(new googleStrategy({
   callbackURL: 'http://localhost:5000/api/auth/google/redirect'
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    const user = await User.findOne({ 'auth.googleId': profile.id });
+    let user = await User.findOne({ 'auth.email': profile.emails[0].value });
 
-    if (user) {
+    if (user && user.auth.googleId) {
       return done(null, user);
     }
 
-    const newUser = new User({
+    if (user && !user.auth.googleId) {
+      user.auth.googleId = profile.id;
+      user.auth.password = null;
+      await user.save();
+      return done(null, user);
+    }
+
+    user = new User({
       auth: {
         googleId: profile.id,
         email: profile.emails[0].value
       }
     });
 
-    await newUser.save();
+    await user.save();
 
-    return done(null, newUser);
+    return done(null, user);
   } catch (err) {
     done(err);
   }
