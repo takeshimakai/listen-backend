@@ -87,9 +87,30 @@ const deleteComment = (req, res, next) => {
   .catch(err => next(err));
 };
 
+const editRelatable = async (req, res, next) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (req.body.relatable) {
+      comment.relatable.push(req.user.id);
+    }
+
+    if (!req.body.relatable) {
+      comment.relatable = comment.relatable.filter(id => id.toString() !== req.user.id)
+    }
+
+    await comment.save();
+
+    return res.status(200).json(comment);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export default {
   getComments,
   saveComment,
   editComment,
-  deleteComment
+  deleteComment,
+  editRelatable
 };

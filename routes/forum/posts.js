@@ -12,4 +12,6 @@ router.put('/:postId', posts.editPost);
 
 router.delete('/:postId', posts.deletePost);
 
+router.put('/:postId/relatability', posts.editRelatable);
+
 export default router;

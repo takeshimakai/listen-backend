@@ -112,9 +112,30 @@ const deletePost = (req, res, next) => {
   .catch(err => next(err));
 };
 
+const editRelatable = async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+
+    if (req.body.relatable) {
+      post.relatable.push(req.user.id);
+    }
+
+    if (!req.body.relatable) {
+      post.relatable = post.relatable.filter(id => id.toString() !== req.user.id)
+    }
+
+    await post.save();
+
+    return res.status(200).json(post);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export default {
   getAllPosts,
   savePost,
   editPost,
-  deletePost
+  deletePost,
+  editRelatable
 };

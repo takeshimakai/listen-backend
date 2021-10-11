@@ -29,7 +29,8 @@ const PostSchema = new Schema({
   content: { type: String, required: true },
   datePosted: Date,
   dateEdited: Date,
-  postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true }
+  postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  relatable: { type: [Schema.Types.ObjectId], ref: 'User' }
 });
 
 export default mongoose.model('Post', PostSchema);

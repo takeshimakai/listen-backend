@@ -12,4 +12,6 @@ router.put('/:commentId', comments.editComment);
 
 router.delete('/:commentId', comments.deleteComment);
 
+router.put('/:commentId/relatability', comments.editRelatable);
+
 export default router;
