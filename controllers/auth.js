@@ -66,11 +66,11 @@ const login = [
   .trim()
   .toLowerCase()
   .isEmail()
-  .withMessage('Please enter a valid email'),
+  .withMessage('Please enter a valid email.'),
 
   body('password')
   .notEmpty()
-  .withMessage('Password is required'),
+  .withMessage('Password is required.'),
   
   (req, res, next) => {
     const errors = validationResult(req);
