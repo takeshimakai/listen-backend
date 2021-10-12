@@ -40,7 +40,7 @@ const signUp = [
       const errors = validationResult(req);
 
       if (!errors.isEmpty()) {
-        res.status(400).json({ errors });
+        res.status(400).json(errors);
       } else {
         const hashedPw = await bcrypt.hash(req.body.password, 10);
         
@@ -64,8 +64,6 @@ const signUp = [
 const login = [
   body('email')
   .trim()
-  .notEmpty()
-  .withMessage('Email is required')
   .toLowerCase()
   .isEmail()
   .withMessage('Please enter a valid email'),
@@ -78,7 +76,7 @@ const login = [
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors });
+      return res.status(400).json(errors);
     }
 
     passport.authenticate('login', { session: false }, (err, user, info) => {
