@@ -23,13 +23,13 @@ async (username, password, done) => {
     const user = await User.findOne({ 'auth.email': username });
 
     if (!user) {
-      return done(null, false, { message: 'Incorrect email' });
+      return done(null, false, { email: 'This email is not registered.' });
     }
 
     const isValidPw = await bcrypt.compare(password, user.auth.password);
 
     if (!isValidPw) {
-      return done(null, false, { message: 'Incorrect password' });
+      return done(null, false, { password: 'Incorrect password.' });
     }
 
     return done(null, user);

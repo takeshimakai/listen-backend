@@ -85,7 +85,7 @@ const login = [
       }
 
       if (!user) {
-        return res.status(401).json({ info });
+        return res.status(401).json(info);
       }
 
       const token = jwt.sign({ id: user._id, username: user.profile.username }, process.env.JWT_SECRET);
