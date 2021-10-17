@@ -95,16 +95,19 @@ const login = [
   }
 ];
 
-const googleLogin = (req, res, next) => {
-  passport.authenticate('google', { session: false }, (err, user) => {
-    if (err) {
-      return next(err);
-    }
-
-    const token = jwt.sign({ id: user._id, username: user.profile.username }, process.env.JWT_SECRET);
-
-    return res.status(200).json(token);
-  })(req, res);
+const googleLogin = (req, res) => {
+  res.redirect('http://localhost:3000/auth/google/success');
 }
 
-export default { signUp, login, googleLogin };
+const googleSuccess = (req, res) => {
+  const token = jwt.sign({ id: req.user._id, username: req.user.profile.username }, process.env.JWT_SECRET);
+  req.logout();
+  res.status(200).json(token);
+}
+
+export default {
+  signUp,
+  login,
+  googleLogin,
+  googleSuccess
+};

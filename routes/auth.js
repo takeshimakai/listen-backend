@@ -16,9 +16,10 @@ router.get('/google', passport.authenticate('google', {
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile'
   ],
-  session: false
 }));
 
-router.get('/google/redirect', auth.googleLogin);
+router.get('/google/redirect', passport.authenticate('google'), auth.googleLogin);
+
+router.get('/google/success', auth.googleSuccess);
 
 export default router;

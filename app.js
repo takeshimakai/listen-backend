@@ -4,6 +4,7 @@ import './config/mongoDB.js';
 import express from 'express';
 import passport from 'passport';
 import cors from 'cors';
+import session from 'express-session';
 import { createServer } from 'http';
 
 import socket from './socket.io/socket.js';
@@ -17,10 +18,12 @@ import friendsRouter from './routes/friends.js';
 
 const app = express();
 
-app.use(passport.initialize());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(session({ secret: 'very secret session', resave: false, saveUninitialized: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Routes
 app.use('/api/auth', authRouter);
