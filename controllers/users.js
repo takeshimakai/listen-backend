@@ -10,14 +10,11 @@ const getProfile = async (req, res, next) => {
     const user = await User.findById(req.params.userId, 'profile').lean();
 
     // Hide info if current user is fetching other user's profile
-    if (req.user.id !== user._id && user.profile.hidden) {
-      let filtered = { _id: user._id };
+    if (req.user.id !== user._id.toString() && user.profile.hidden) {
+      let filtered = { _id: user._id, profile: {} };
       for (const key in user.profile) {
         if (!user.profile.hidden.includes(key) && key !== 'hidden') {
-          filtered = {
-            ...filtered,
-            [key]: user.profile[key]
-          }
+          filtered.profile[key] = user.profile[key];
         }
       }
       return res.status(200).json(filtered);
