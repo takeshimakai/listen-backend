@@ -8,7 +8,7 @@ const { body, validationResult } = expressValidator;
 const getComments = (req, res, next) => {
   Comment
   .find({ postId: req.params.postId })
-  .populate('userId', 'profile.username')
+  .populate('postedBy', 'profile.username')
   .then(comments => res.status(200).json(comments))
   .catch(err => next(err));
 };
