@@ -19,18 +19,18 @@ const getAllPosts = async (req, res, next) => {
 const savePost = [
   body('topics')
   .notEmpty()
-  .withMessage('Please select topics'),
+  .withMessage('Please select topics.'),
 
   body('title')
   .trim()
   .notEmpty()
-  .withMessage('Title is required')
+  .withMessage('Title is required.')
   .escape(),
 
   body('content')
   .trim()
   .notEmpty()
-  .withMessage('Content is required')
+  .withMessage('Content is required.')
   .escape(),
 
   async (req, res, next) => {
@@ -50,6 +50,8 @@ const savePost = [
       });
 
       await post.save();
+
+      await post.populate('postedBy', 'profile.username').execPopulate();
 
       return res.status(200).json(post);
     } catch (err) {
