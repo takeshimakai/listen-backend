@@ -97,7 +97,8 @@ const editPost = [
       post.dateEdited = Date.now();
 
       await post.save();
-
+      await post.populate('postedBy', 'profile.username').execPopulate();
+      
       return res.status(200).json(post);
     } catch (err) {
       next(err);
