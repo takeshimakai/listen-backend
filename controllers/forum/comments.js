@@ -36,7 +36,9 @@ const saveComment = [
         datePosted: Date.now()
       });
 
-      await comment.save();
+      //await comment.save();
+      await comment.save()
+      await comment.populate('postedBy', 'profile.username').execPopulate();
 
       return res.status(200).json(comment);
     } catch (err) {
@@ -70,7 +72,8 @@ const editComment = [
       comment.content = req.body.content;
       comment.dateEdited = Date.now();
 
-      await comment.save();
+      await comment.save()
+      await comment.populate('postedBy', 'profile.username').execPopulate();
 
       return res.status(200).json(comment);
     } catch (err) {
