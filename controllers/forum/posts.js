@@ -50,7 +50,6 @@ const savePost = [
       });
 
       await post.save();
-
       await post.populate('postedBy', 'profile.username').execPopulate();
 
       return res.status(200).json(post);
