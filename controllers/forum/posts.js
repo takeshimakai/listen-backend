@@ -118,13 +118,9 @@ const editRelatable = async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.postId);
 
-    if (req.body.relatable) {
-      post.relatable.push(req.user.id);
-    }
-
-    if (!req.body.relatable) {
-      post.relatable = post.relatable.filter(id => id.toString() !== req.user.id)
-    }
+    post.relatable.includes(req.user.id)
+      ? post.relatable = post.relatable.filter(id => id.toString() !== req.user.id)
+      : post.relatable.push(req.user.id);
 
     await post.save();
 
