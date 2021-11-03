@@ -123,6 +123,7 @@ const editRelatable = async (req, res, next) => {
       : post.relatable.push(req.user.id);
 
     await post.save();
+    await post.populate('postedBy', 'profile.username').execPopulate();
 
     return res.status(200).json(post);
   } catch (err) {

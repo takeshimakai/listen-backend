@@ -94,15 +94,12 @@ const editRelatable = async (req, res, next) => {
   try {
     const comment = await Comment.findById(req.params.commentId);
 
-    if (req.body.relatable) {
-      comment.relatable.push(req.user.id);
-    }
-
-    if (!req.body.relatable) {
-      comment.relatable = comment.relatable.filter(id => id.toString() !== req.user.id)
-    }
+    comment.relatable.includes(req.user.id)
+    ? comment.relatable = comment.relatable.filter(id => id.toString() !== req.user.id)
+    : comment.relatable.push(req.user.id);
 
     await comment.save();
+    await comment.populate('postedBy', 'profile.username').execPopulate();
 
     return res.status(200).json(comment);
   } catch (err) {
