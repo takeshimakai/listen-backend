@@ -29,8 +29,6 @@ const saveComment = [
         return res.status(400).json(errors);
       }
 
-      console.log(req.body)
-
       const comment = new Comment({
         postId: req.params.postId,
         replyTo: req.body.replyTo,
