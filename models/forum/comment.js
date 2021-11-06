@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 const CommentSchema = new Schema({
   postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
+  replyTo: { type: Schema.Types.ObjectId, required: true},
   postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, required: true },
   datePosted: Date,
