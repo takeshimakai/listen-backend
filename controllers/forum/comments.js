@@ -88,7 +88,7 @@ const editComment = [
 // Delete comment by ID
 const deleteComment = (req, res, next) => {
   Comment
-  .deleteOne({ _id: req.params.commentId })
+  .deleteMany({ $or: [{ _id: req.params.commentId }, { replyTo: req.params.commentId }] })
   .then(res.sendStatus(200))
   .catch(err => next(err));
 };
