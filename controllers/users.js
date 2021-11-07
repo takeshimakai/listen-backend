@@ -2,12 +2,19 @@ import expressValidator from 'express-validator';
 import jwt from 'jsonwebtoken';
 
 import User from '../models/user.js';
+import Post from '../models/forum/post.js';
+import Comment from '../models/forum/comment.js';
 
 const { body, validationResult } = expressValidator;
 
 const getProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.userId, 'profile').lean();
+    const user = await User
+      .findById(req.params.userId, 'profile friends')
+      .populate('friends.accepted', 'profile.username')
+      .populate('friends.received', 'profile.username')
+      .populate('friends.sent', 'profile.username')
+      .lean();
 
     // Hide info if current user is fetching other user's profile
     if (req.user.id !== user._id.toString() && user.profile.hidden) {
@@ -17,10 +24,15 @@ const getProfile = async (req, res, next) => {
           filtered.profile[key] = user.profile[key];
         }
       }
-      return res.status(200).json(filtered);
+      return res.status(200).json({ user: filtered });
     }
 
-    return res.status(200).json(user);
+    const [posts, comments] = await Promise.all([
+      Post.find({ postedBy: req.user.id }),
+      Comment.find({ postedBy: req.user.id })
+    ]);
+
+    return res.status(200).json({ user, posts, comments });
   } catch (err) {
     return next(err);
   }
