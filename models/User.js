@@ -56,10 +56,10 @@ const UserSchema = new Schema({
   }
 });
 
-UserSchema.virtual('age').get(() => {
+UserSchema.virtual('age').get(function() {
   const today = new Date();
   const dob = new Date(this.profile.dob);
-  const age = today.getFullYear() - dob.getFullYear();
+  let age = today.getFullYear() - dob.getFullYear();
   const month = today.getMonth() - dob.getMonth();
   if (month < 0 || (month === 0 && today.getDate() < dob.getDate())) {
     age--;

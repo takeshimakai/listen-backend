@@ -2,19 +2,12 @@ import expressValidator from 'express-validator';
 import jwt from 'jsonwebtoken';
 
 import User from '../models/user.js';
-import Post from '../models/forum/post.js';
-import Comment from '../models/forum/comment.js';
 
 const { body, validationResult } = expressValidator;
 
 const getProfile = async (req, res, next) => {
   try {
-    const user = await User
-      .findById(req.params.userId, 'profile friends')
-      .populate('friends.accepted', 'profile.username')
-      .populate('friends.received', 'profile.username')
-      .populate('friends.sent', 'profile.username')
-      .lean();
+    let user = await User.findById(req.params.userId, 'profile');
 
     // Hide info if current user is fetching other user's profile
     if (req.user.id !== user._id.toString() && user.profile.hidden) {
@@ -24,15 +17,10 @@ const getProfile = async (req, res, next) => {
           filtered.profile[key] = user.profile[key];
         }
       }
-      return res.status(200).json({ user: filtered });
+      return res.status(200).json(filtered);
     }
 
-    const [posts, comments] = await Promise.all([
-      Post.find({ postedBy: req.user.id }),
-      Comment.find({ postedBy: req.user.id })
-    ]);
-
-    return res.status(200).json({ user, posts, comments });
+    return res.status(200).json(user);
   } catch (err) {
     return next(err);
   }
@@ -75,38 +63,28 @@ const saveUsername = [
   }
 ]
 
-const saveProfile = [
-  body('interests')
-  .trim()
-  .escape()
-  .customSanitizer(value => value.toLowerCase().split(/\s*(?:,|$)\s*/)),
-
-  async (req, res, next) => {
-    try {
-      const errors = validationResult(req);
-
-      if (!errors.isEmpty()) {
-        return res.status(400).json(errors);
+const saveProfile = async (req, res, next) => {
+  try {
+    const updated = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        'profile.dob': req.body.dob,
+        'profile.gender': req.body.gender,
+        'profile.interests': req.body.interests,
+        'profile.problemTopics': req.body.problemTopics,
+        'profile.hidden': req.body.hidden
+      },
+      {
+        new: true,
+        fields: 'profile'
       }
+    );
 
-      const updated = await User.findByIdAndUpdate(
-        req.user.id,
-        {
-          'profile.dob': req.body.dob,
-          'profile.gender': req.body.gender,
-          'profile.interests': req.body.interests,
-          'profile.problemTopics': req.body.problemTopics,
-          'profile.hidden': req.body.hidden
-        },
-        { new: true }
-      );
-
-      return res.status(200).json(updated);
-    } catch (err) {
-      return next(err);
-    }
+    return res.status(200).json(updated);
+  } catch (err) {
+    return next(err);
   }
-];
+};
 
 const deleteUser = (req, res, next) => {
   User
