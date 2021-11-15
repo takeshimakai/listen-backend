@@ -7,7 +7,7 @@ const { body, validationResult } = expressValidator;
 
 const getProfile = async (req, res, next) => {
   try {
-    let user = await User.findById(req.params.userId, 'profile');
+    let user = await User.findById(req.params.userId, 'profile').lean();
 
     // Hide info if current user is fetching other user's profile
     if (req.user.id !== user._id.toString() && user.profile.hidden) {
