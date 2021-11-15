@@ -3,8 +3,10 @@ import User from '../models/user.js';
 const getFriends = async (req, res, next) => {
   try {
     const friends = await User
-      .findById(req.user.id, 'friends.accepted')
-      .populate('friends.accepted', 'profile.username');
+      .findById(req.user.id, 'friends.accepted friends.received friends.sent')
+      .populate('friends.accepted', 'profile.username')
+      .populate('friends.received', 'profile.username')
+      .populate('friends.sent', 'profile.username');
 
     res.status(200).json(friends);
   } catch (err) {
@@ -12,14 +14,20 @@ const getFriends = async (req, res, next) => {
   }
 }
 
-const getRequests = async (req, res, next) => {
+const deleteFriend = async (req, res, next) => {
   try {
-    const requests = await User
-      .findById(req.user.id, 'friends.received friends.sent')
-      .populate('friends.sent', 'profile.username')
-      .populate('friends.received', 'profile.username');
+    await Promise.all([
+      User.findByIdAndUpdate(
+        req.user.id,
+        { $pull: { 'friends.accepted': req.params.userId } }
+      ),
+      User.findByIdAndUpdate(
+        req.params.userId,
+        { $pull: { 'friends.accepted': req.user.id } }
+      )
+    ]);
 
-    res.status(200).json(requests);
+    res.sendStatus(200);
   } catch (err) {
     next(err);
   }
@@ -102,7 +110,7 @@ const deleteRequest = async (req, res, next) => {
 
 export default {
   getFriends,
-  getRequests,
+  deleteFriend,
   acceptRequest,
   sendRequest,
   deleteRequest

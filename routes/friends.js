@@ -7,8 +7,7 @@ const router = express.Router();
 // Get list of friends
 router.get('/', friends.getFriends);
 
-// Get list of friend requests
-router.get('/requests', friends.getRequests);
+router.delete('/:userId', friends.deleteFriend);
 
 // Send friend request
 router.post('/requests', friends.sendRequest);
