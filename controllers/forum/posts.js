@@ -1,7 +1,7 @@
 import expressValidator from 'express-validator';
 
-import Post from '../../models/forum/post.js';
-import Comment from '../../models/forum/comment.js';
+import Post from '../../models/forum/Post.js';
+import Comment from '../../models/forum/Comment.js';
 
 const { body, validationResult } = expressValidator;
 
@@ -14,6 +14,15 @@ const getAllPosts = async (req, res, next) => {
     next(err);
   }
 };
+
+const getPostsByUser = async (req, res, next) => {
+  try {
+    const posts = await Post.find({ postedBy: req.user.id });
+    return res.status(200).json(posts);
+  } catch (err) {
+    next(err);
+  }
+}
 
 // Save new post
 const savePost = [
@@ -133,6 +142,7 @@ const editRelatable = async (req, res, next) => {
 
 export default {
   getAllPosts,
+  getPostsByUser,
   savePost,
   editPost,
   deletePost,

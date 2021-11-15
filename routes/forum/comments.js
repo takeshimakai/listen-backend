@@ -4,6 +4,8 @@ import comments from '../../controllers/forum/comments.js';
 
 const router = express.Router();
 
+router.get('/by-user', comments.getCommentsByUser);
+
 router.get('/:postId', comments.getComments);
 
 router.post('/:postId', comments.saveComment);

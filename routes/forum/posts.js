@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.get('/', posts.getAllPosts);
 
+router.get('/by-user', posts.getPostsByUser);
+
 router.post('/', posts.savePost);
 
 router.put('/:postId', posts.editPost);

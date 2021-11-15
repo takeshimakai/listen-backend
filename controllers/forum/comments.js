@@ -1,6 +1,6 @@
 import expressValidator from 'express-validator';
 
-import Comment from '../../models/forum/comment.js';
+import Comment from '../../models/forum/Comment.js';
 
 const { body, validationResult } = expressValidator;
 
@@ -12,6 +12,18 @@ const getComments = (req, res, next) => {
   .then(comments => res.status(200).json(comments))
   .catch(err => next(err));
 };
+
+const getCommentsByUser = async (req, res, next) => {
+  try {
+    const comments = await Comment
+      .find({ postedBy: req.user.id })
+      .populate('postId', 'title');
+
+    return res.status(200).json(comments);
+  } catch (err) {
+    next(err);
+  }
+}
 
 // Save new comment
 const saveComment = [
@@ -110,6 +122,7 @@ const editRelatable = async (req, res, next) => {
 
 export default {
   getComments,
+  getCommentsByUser,
   saveComment,
   editComment,
   deleteComment,
