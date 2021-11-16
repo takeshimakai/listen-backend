@@ -11,29 +11,29 @@ const signUp = [
   body('email')
   .trim()
   .notEmpty()
-  .withMessage('Email is required')
+  .withMessage('Email is required.')
   .toLowerCase()
   .isEmail()
-  .withMessage('Please enter a valid email')
+  .withMessage('Please enter a valid email.')
   .custom(value => {
     return User
       .findOne({ 'auth.email': value })
       .then(user => {
         if (user) {
-          return Promise.reject('E-mail already in use');
+          return Promise.reject('E-mail already in use.');
       };
     });
   }),
 
   body('password')
   .notEmpty()
-  .withMessage('Password is required')
+  .withMessage('Password is required.')
   .custom(value => !/\s/.test(value))
-  .withMessage('No spaces are allowed in the password'),
+  .withMessage('No spaces are allowed in the password.'),
 
   body('passwordConfirmation')
   .custom((value, { req }) => value === req.body.password)
-  .withMessage('Password confirmation does not match the password'),
+  .withMessage('Password confirmation does not match the password.'),
 
   async (req, res, next) => {
     try {
