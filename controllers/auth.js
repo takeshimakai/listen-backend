@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 
 import User from '../models/user.js';
 
+import generateCode from '../utils/generateCode.js';
+
 const { body, validationResult } = expressValidator;
 
 const signUp = [
@@ -40,26 +42,62 @@ const signUp = [
       const errors = validationResult(req);
 
       if (!errors.isEmpty()) {
-        res.status(400).json(errors);
-      } else {
-        const hashedPw = await bcrypt.hash(req.body.password, 10);
-        
-        const newUser = new User({
-          auth: {
-            email: req.body.email,
-            password: hashedPw
-          }
-        });
-  
-        await newUser.save();
-  
-        res.sendStatus(200);
+        return res.status(400).json(errors);
       }
+
+      const hashedPw = await bcrypt.hash(req.body.password, 10);
+      let randomCode = generateCode(0, 999999).toString();
+
+      if (randomCode.length < 6) {
+        randomCode = randomCode.padStart(6, '0');
+      }
+      
+      const newUser = new User({
+        auth: {
+          email: req.body.email,
+          password: hashedPw,
+          verification: {
+            code: randomCode
+          }
+        }
+      });
+
+      await newUser.save();
+
+      const token = jwt.sign(
+        { id: newUser._id, verified: newUser.auth.verification.verified },
+        process.env.JWT_SECRET
+      );
+
+      return res.status(200).json(token);
     } catch (err) {
       next(err);
     }
   }
 ];
+
+const emailVerification = async (req, res, next) => {
+  try {
+    let user = await User.findById(req.user.id, 'auth.verification');
+    const { code } = req.body;
+
+    if (user.auth.verification.code !== code) {
+      return res.status(400).json({ msg: 'The code entered is incorrect.' });
+    }
+
+    user.auth.verification.verified = true;
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, verified: user.auth.verification.verified },
+      process.env.JWT_SECRET
+    );
+
+    return res.status(200).json(token);
+  } catch (err) {
+    next(err);
+  }
+};
 
 const login = [
   body('email')
@@ -107,6 +145,7 @@ const googleSuccess = (req, res) => {
 
 export default {
   signUp,
+  emailVerification,
   login,
   googleLogin,
   googleSuccess

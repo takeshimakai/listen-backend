@@ -5,7 +5,11 @@ const UserSchema = new Schema({
   auth: {
     email: String,
     password: String,
-    googleId: String
+    googleId: String,
+    verification: {
+      code: String,
+      verified: { type: Boolean, default: false }
+    }
   },
   friends: {
     accepted: { type: [Schema.Types.ObjectId], ref: 'User' },

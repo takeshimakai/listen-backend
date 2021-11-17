@@ -9,6 +9,8 @@ const router = express.Router();
 
 router.post('/signup', auth.signUp);
 
+router.post('/verify', passport.authenticate('jwt', { session: false }), auth.emailVerification);
+
 router.post('/login', auth.login);
 
 router.get('/google', passport.authenticate('google', {
