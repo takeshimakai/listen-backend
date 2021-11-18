@@ -126,7 +126,11 @@ const login = [
         return res.status(401).json(info);
       }
 
-      const token = jwt.sign({ id: user._id, username: user.profile.username }, process.env.JWT_SECRET);
+      const token = jwt.sign({
+        id: user._id,
+        username: user.profile.username,
+        verified: user.auth.verification.verified
+      }, process.env.JWT_SECRET);
 
       return res.status(200).json(token);
     })(req, res);
