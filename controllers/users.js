@@ -26,7 +26,7 @@ const getProfile = async (req, res, next) => {
   }
 };
 
-const saveUsername = [
+const createProfile = [
   body('username')
   .notEmpty()
   .withMessage('Username is required.')
@@ -54,7 +54,13 @@ const saveUsername = [
 
       const user = await User.findByIdAndUpdate(
         req.user.id,
-        { 'profile.username': req.body.username },
+        {
+          'profile.username': req.body.username,
+          'profile.dob': req.body.dob,
+          'profile.gender': req.body.gender,
+          'profile.interests': req.body.interests,
+          'profile.problemTopics': req.body.problemTopics
+        },
         {
           new: true,
           fields: 'profile.username auth.verification.verified'
@@ -72,9 +78,9 @@ const saveUsername = [
       next(err);
     }
   }
-]
+];
 
-const saveProfile = async (req, res, next) => {
+const editProfile = async (req, res, next) => {
   try {
     const updated = await User.findByIdAndUpdate(
       req.user.id,
@@ -106,7 +112,7 @@ const deleteUser = (req, res, next) => {
 
 export default {
   getProfile,
-  saveUsername,
-  saveProfile,
+  createProfile,
+  editProfile,
   deleteUser
 };

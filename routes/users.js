@@ -6,9 +6,9 @@ const router = express.Router();
 
 router.get('/:userId', users.getProfile);
 
-router.put('/', users.saveProfile);
+router.post('/', users.createProfile);
 
-router.put('/username', users.saveUsername);
+router.put('/', users.editProfile);
 
 router.delete('/', users.deleteUser);
 
