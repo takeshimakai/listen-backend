@@ -29,17 +29,17 @@ const getProfile = async (req, res, next) => {
 const saveUsername = [
   body('username')
   .notEmpty()
-  .withMessage('Username is required')
+  .withMessage('Username is required.')
   .custom(value => !/\s/.test(value))
-  .withMessage('No spaces allowed in the username')
+  .withMessage('No spaces allowed in the username.')
   .isAlphanumeric()
-  .withMessage('Must contain only letters and numbers')
+  .withMessage('Must contain only letters and numbers.')
   .custom(value => {
     return User
       .findOne({ 'profile.username': value })
       .then(user => {
         if (user) {
-          return Promise.reject('Username already in use');
+          return Promise.reject('Username is already in use.');
         }
       })
   }),
@@ -52,11 +52,22 @@ const saveUsername = [
         return res.status(400).json(errors);
       }
 
-      await User.findByIdAndUpdate(req.user.id, { 'profile.username': req.body.username });
+      const user = await User.findByIdAndUpdate(
+        req.user.id,
+        { 'profile.username': req.body.username },
+        {
+          new: true,
+          fields: 'profile.username auth.verification.verified'
+        }
+      );
 
-      const token = jwt.sign({ id: req.user.id, username: req.body.username }, process.env.JWT_SECRET);
+      const token = jwt.sign({
+        id: user._id,
+        username: user.profile.username,
+        verified: user.auth.verification.verified
+      }, process.env.JWT_SECRET);
 
-      return res.status(200).json({ token });
+      return res.status(200).json(token);
     } catch (err) {
       next(err);
     }
