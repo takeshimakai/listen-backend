@@ -48,8 +48,8 @@ const signUp = [
       const hashedPw = await bcrypt.hash(req.body.password, 10);
       let randomCode = generateCode(0, 9999).toString();
 
-      if (randomCode.length < 6) {
-        randomCode = randomCode.padStart(6, '0');
+      if (randomCode.length < 4) {
+        randomCode = randomCode.padStart(4, '0');
       }
       
       const newUser = new User({
