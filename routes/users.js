@@ -4,6 +4,8 @@ import users from '../controllers/users.js';
 
 const router = express.Router();
 
+router.get('/username/:username', users.usernameValidation);
+
 router.get('/:userId', users.getProfile);
 
 router.post('/', users.createProfile);

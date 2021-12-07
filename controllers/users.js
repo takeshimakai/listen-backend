@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 import User from '../models/user.js';
 
-const { body, validationResult } = expressValidator;
+const { body, param, validationResult } = expressValidator;
 
 const getProfile = async (req, res, next) => {
   try {
@@ -28,12 +28,6 @@ const getProfile = async (req, res, next) => {
 
 const createProfile = [
   body('username')
-  .notEmpty()
-  .withMessage('Username is required.')
-  .custom(value => !/\s/.test(value))
-  .withMessage('No spaces allowed in the username.')
-  .isAlphanumeric()
-  .withMessage('Must contain only letters and numbers.')
   .custom(value => {
     return User
       .findOne({ 'profile.username': value })
@@ -66,13 +60,13 @@ const createProfile = [
           fields: 'profile.username auth.verification.verified'
         }
       );
-
+  
       const token = jwt.sign({
         id: user._id,
         username: user.profile.username,
         verified: user.auth.verification.verified
       }, process.env.JWT_SECRET);
-
+  
       return res.status(200).json(token);
     } catch (err) {
       next(err);
@@ -110,9 +104,43 @@ const deleteUser = (req, res, next) => {
   .catch(err => next(err));
 };
 
+const usernameValidation = [
+  param('username')
+  .notEmpty()
+  .withMessage('Username is required.')
+  .custom(value => !/\s/.test(value))
+  .withMessage('No spaces allowed in the username.')
+  .isAlphanumeric()
+  .withMessage('Must contain only letters and numbers.')
+  .custom(value => {
+    return User
+      .findOne({ 'profile.username': value })
+      .then(user => {
+        if (user) {
+          return Promise.reject('Username is already in use.');
+        }
+      })
+  }),
+
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json(errors);
+      }
+  
+      return res.sendStatus(200);
+    } catch (err) {
+      next(err);
+    }
+  }
+];
+
 export default {
   getProfile,
   createProfile,
   editProfile,
-  deleteUser
+  deleteUser,
+  usernameValidation
 };
