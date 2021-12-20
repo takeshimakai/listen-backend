@@ -50,12 +50,8 @@ const UserSchema = new Schema({
     },
     hidden: {
       type: [String],
-      enum: [
-        'dob',
-        'gender',
-        'interests',
-        'problemTopics'
-      ]
+      enum: [ 'dob', 'gender', 'interests', 'problemTopics'],
+      default: ['dob', 'gender', 'interests', 'problemTopics']
     }
   }
 });
