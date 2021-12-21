@@ -48,10 +48,9 @@ const UserSchema = new Schema({
         'Other'
       ]
     },
-    hidden: {
+    public: {
       type: [String],
-      enum: [ 'dob', 'gender', 'interests', 'problemTopics'],
-      default: ['dob', 'gender', 'interests', 'problemTopics']
+      enum: [ 'dob', 'gender', 'interests', 'problemTopics']
     }
   }
 });
