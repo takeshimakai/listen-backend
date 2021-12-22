@@ -7,20 +7,39 @@ const { body, param, validationResult } = expressValidator;
 
 const getProfile = async (req, res, next) => {
   try {
-    let user = await User.findById(req.params.userId, 'profile').lean();
+    if (req.user.id === req.params.userId) {
+      const user = await User.findById(req.user.id, 'profile').lean();
+      return res.status(200).json(user);
+    }
 
-    // Hide info if current user is fetching other user's profile
-    if (req.user.id !== user._id.toString() && user.profile.public) {
-      let filtered = { _id: user._id, profile: { username: user.profile.username } };
+    const user = await User.findById(req.params.userId, 'profile friends').lean();
+    let filtered = {
+      _id: user._id,
+      profile: { username: user.profile.username },
+      friendshipStatus: ''
+    };
+
+    if (user.profile.public) {
       for (const key in user.profile) {
         if (user.profile.public.includes(key) && key !== 'public') {
           filtered.profile[key] = user.profile[key];
         }
       }
-      return res.status(200).json(filtered);
     }
 
-    return res.status(200).json(user);
+    if (user.friends.accepted.some(i => i._id.toString() === req.user.id)) {
+      filtered.friendshipStatus = 'friends';
+    }
+
+    if (user.friends.received.some(i => i._id.toString() === req.user.id)) {
+      filtered.friendshipStatus = 'sent';
+    }
+
+    if (user.friends.sent.some(i => i._id.toString() === req.user.id)) {
+      filtered.friendshipStatus = 'received';
+    }
+
+    return res.status(200).json(filtered);
   } catch (err) {
     return next(err);
   }

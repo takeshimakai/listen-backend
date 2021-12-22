@@ -3,7 +3,7 @@ import User from '../models/user.js';
 const getFriends = async (req, res, next) => {
   try {
     const friends = await User
-      .findById(req.user.id, 'friends.accepted friends.received friends.sent')
+      .findById(req.user.id, 'friends')
       .populate('friends.accepted', 'profile.username')
       .populate('friends.received', 'profile.username')
       .populate('friends.sent', 'profile.username');
@@ -19,10 +19,10 @@ const deleteFriend = async (req, res, next) => {
     await Promise.all([
       User.findByIdAndUpdate(
         req.user.id,
-        { $pull: { 'friends.accepted': req.params.userId } }
+        { $pull: { 'friends.accepted': req.body.userId } }
       ),
       User.findByIdAndUpdate(
-        req.params.userId,
+        req.body.userId,
         { $pull: { 'friends.accepted': req.user.id } }
       )
     ]);
