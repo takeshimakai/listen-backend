@@ -33,14 +33,12 @@ const savePost = [
   body('title')
   .trim()
   .notEmpty()
-  .withMessage('Title is required.')
-  .escape(),
+  .withMessage('Title is required.'),
 
   body('content')
   .trim()
   .notEmpty()
-  .withMessage('Content is required.')
-  .escape(),
+  .withMessage('Content is required.'),
 
   async (req, res, next) => {
     try {
@@ -76,14 +74,12 @@ const editPost = [
   body('title')
   .trim()
   .notEmpty()
-  .withMessage('Title is required.')
-  .escape(),
+  .withMessage('Title is required.'),
 
   body('content')
   .trim()
   .notEmpty()
-  .withMessage('Content is required.')
-  .escape(),
+  .withMessage('Content is required.'),
 
   async (req, res, next) => {
     try {
