@@ -30,8 +30,7 @@ const saveComment = [
   body('content')
   .trim()
   .notEmpty()
-  .withMessage('Comment is required.')
-  .escape(),
+  .withMessage('Comment is required.'),
 
   async (req, res, next) => {
     try {
@@ -65,8 +64,7 @@ const editComment = [
   body('content')
   .trim()
   .notEmpty()
-  .withMessage('Comment is required.')
-  .escape(),
+  .withMessage('Comment is required.'),
 
   async (req, res, next) => {
     try {
@@ -98,9 +96,9 @@ const editComment = [
 // Delete comment by ID
 const deleteComment = (req, res, next) => {
   Comment
-  .deleteMany({ $or: [{ _id: req.params.commentId }, { replyTo: req.params.commentId }] })
-  .then(res.sendStatus(200))
-  .catch(err => next(err));
+    .deleteMany({ $or: [{ _id: req.params.commentId }, { replyTo: req.params.commentId }] })
+    .then(res.sendStatus(200))
+    .catch(err => next(err));
 };
 
 const editRelatable = async (req, res, next) => {
@@ -108,8 +106,8 @@ const editRelatable = async (req, res, next) => {
     const comment = await Comment.findById(req.params.commentId);
 
     comment.relatable.includes(req.user.id)
-    ? comment.relatable = comment.relatable.filter(id => id.toString() !== req.user.id)
-    : comment.relatable.push(req.user.id);
+      ? comment.relatable = comment.relatable.filter(id => id.toString() !== req.user.id)
+      : comment.relatable.push(req.user.id);
 
     await comment.save();
     await comment.populate('postedBy', 'profile.username').execPopulate();
