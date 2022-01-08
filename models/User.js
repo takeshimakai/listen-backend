@@ -23,6 +23,7 @@ const UserSchema = new Schema({
     pinned: { type: [Schema.Types.ObjectId], ref: 'Post' }
   },
   profile: {
+    img: { data: Buffer, contentType: String },
     username: String,
     dob: Date,
     gender: { type: String, enum: ['Female', 'Male', 'Non-binary', 'Other'] },

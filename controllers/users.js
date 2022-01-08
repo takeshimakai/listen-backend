@@ -95,18 +95,41 @@ const createProfile = [
 
 const editProfile = async (req, res, next) => {
   try {
-    const updated = await User.findByIdAndUpdate(
-      req.user.id,
-      {
+    let data;
+
+    if (req.file) {
+      data = {
+        'profile.img': {
+          data: Buffer.from(req.file.buffer, 'base64'),
+          contentType: req.file.mimetype
+        },
         'profile.dob': req.body.dob,
         'profile.gender': req.body.gender,
         'profile.interests': req.body.interests,
         'profile.problemTopics': req.body.problemTopics,
         'profile.public': req.body.public
-      },
+      }
+    } else {
+      data = {
+        'profile.dob': req.body.dob,
+        'profile.gender': req.body.gender,
+        'profile.interests': req.body.interests,
+        'profile.problemTopics': req.body.problemTopics,
+        'profile.public': req.body.public
+      };
+
+      if (req.body.img === '') {
+        data = { ...data, 'profile.img': undefined };
+      }
+    }
+
+    const updated = await User.findByIdAndUpdate(
+      req.user.id,
+      data,
       {
         new: true,
-        fields: 'profile'
+        fields: 'profile',
+        lean: true
       }
     );
 
