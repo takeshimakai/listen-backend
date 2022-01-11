@@ -65,15 +65,23 @@ const createProfile = [
         return res.status(400).json(errors);
       }
 
+      const data = {
+        'profile.img': req.file
+          ? {
+              data: Buffer.from(req.file.buffer, 'base64'),
+              contentType: req.file.mimetype
+            }
+          : undefined,
+        'profile.username': req.body.username,
+        'profile.dob': req.body.dob,
+        'profile.gender': req.body.gender,
+        'profile.interests': req.body.interests,
+        'profile.problemTopics': req.body.problemTopics
+      };
+
       const user = await User.findByIdAndUpdate(
         req.user.id,
-        {
-          'profile.username': req.body.username,
-          'profile.dob': req.body.dob,
-          'profile.gender': req.body.gender,
-          'profile.interests': req.body.interests,
-          'profile.problemTopics': req.body.problemTopics
-        },
+        data,
         {
           new: true,
           fields: 'profile.username auth.verification.verified'
@@ -95,32 +103,26 @@ const createProfile = [
 
 const editProfile = async (req, res, next) => {
   try {
-    let data;
+    let data = {
+      'profile.dob': req.body.dob,
+      'profile.gender': req.body.gender,
+      'profile.interests': req.body.interests,
+      'profile.problemTopics': req.body.problemTopics,
+      'profile.public': req.body.public
+    };
 
     if (req.file) {
       data = {
+        ...data,
         'profile.img': {
           data: Buffer.from(req.file.buffer, 'base64'),
           contentType: req.file.mimetype
-        },
-        'profile.dob': req.body.dob,
-        'profile.gender': req.body.gender,
-        'profile.interests': req.body.interests,
-        'profile.problemTopics': req.body.problemTopics,
-        'profile.public': req.body.public
+        }
       }
-    } else {
-      data = {
-        'profile.dob': req.body.dob,
-        'profile.gender': req.body.gender,
-        'profile.interests': req.body.interests,
-        'profile.problemTopics': req.body.problemTopics,
-        'profile.public': req.body.public
-      };
+    }
 
-      if (req.body.img === '') {
-        data = { ...data, 'profile.img': undefined };
-      }
+    if (req.body.img === '') {
+      data = { ...data, 'profile.img': undefined };
     }
 
     const updated = await User.findByIdAndUpdate(

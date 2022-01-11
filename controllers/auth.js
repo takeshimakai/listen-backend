@@ -86,6 +86,8 @@ const emailVerification = async (req, res, next) => {
     }
 
     user.auth.verification.verified = true;
+    user.auth.verification.code = undefined;
+
     await user.save();
 
     const token = jwt.sign(
