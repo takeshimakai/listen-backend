@@ -137,7 +137,7 @@ const editProfile = async (req, res, next) => {
 
     return res.status(200).json(updated);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 };
 
