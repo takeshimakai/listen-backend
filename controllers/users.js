@@ -2,6 +2,8 @@ import expressValidator from 'express-validator';
 import jwt from 'jsonwebtoken';
 
 import User from '../models/user.js';
+import Post from '../models/forum/Post.js';
+import Comment from '../models/forum/Comment.js';
 
 const { body, param, validationResult } = expressValidator;
 
@@ -141,9 +143,12 @@ const editProfile = async (req, res, next) => {
   }
 };
 
-const deleteUser = (req, res, next) => {
-  User
-  .findByIdAndDelete(req.user.id)
+const deleteUser = (req, res, next) => {  
+  Promise.all([
+    Post.updateMany({ postedBy: req.user.id }, { postedBy: undefined }),
+    Comment.updateMany({ postedBy: req.user.id }, { postedBy: undefined }),
+    User.findByIdAndDelete(req.user.id)
+  ])
   .then(res.sendStatus(200))
   .catch(err => next(err));
 };

@@ -29,7 +29,7 @@ const PostSchema = new Schema({
   content: { type: String, required: true },
   datePosted: Date,
   dateEdited: Date,
-  postedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  postedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   relatable: { type: [Schema.Types.ObjectId], ref: 'User' }
 });
 
