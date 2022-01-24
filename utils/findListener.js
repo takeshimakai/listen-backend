@@ -7,7 +7,7 @@ const findListener = async (userId, filters) => {
     const listeners = await User.find({
       _id: { $ne: userId },
       'chat.isListener': true
-    }, 'profile');
+    }, 'profile').lean();
 
     const match = listeners.find(listener => isCompatible(listener, filters));
 

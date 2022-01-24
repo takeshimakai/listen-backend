@@ -1,5 +1,3 @@
-import expressValidator from 'express-validator';
-
 import User from '../models/user.js';
 import Room from '../models/chat/room.js';
 
@@ -8,16 +6,14 @@ import createFilters from '../utils/createFilters.js';
 
 const initializeTalker = async (req, res, next) => {
   try {
-    const filters = createFilters(req.body);
-    let match = await findListener(req.user.id, filters);
-
+    let match = await findListener(req.user.id, createFilters(req.body));
     let numOfTries = 0;
     let room;
 
     while (numOfTries < 10 && !match) {
       numOfTries++;
       await new Promise((resolve) => setTimeout(resolve, 5000));
-      match = await findListener(req.user.id, filters);
+      match = await findListener(req.user.id, createFilters(req.body));
     }
 
     if (match) {
@@ -41,7 +37,7 @@ const changeListenerAvailability = (req, res, next) => {
   User
   .findById(req.user.id)
   .then(user => {
-    user.chat.isListener ? user.chat.isListener = false : user.chat.isListener = true;
+    user.chat.isListener = !user.chat.isListener;
     user.save();
   })
   .then(res.sendStatus(200))

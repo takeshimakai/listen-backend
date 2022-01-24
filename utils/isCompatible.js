@@ -1,5 +1,3 @@
-import createFilters from './createFilters.js';
-
 const isCompatible = (user, filters) => {
   if (
     (filters.dob.min === null || user.profile.dob <= filters.dob.min)

@@ -2,9 +2,9 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const MessageSchema = new Schema({
-  room: { type: Schema.Types.ObjectId, ref: 'Room', required: true },
-  msg: { type: String, required: true },
-  sentBy: { type: String, required: true },
+  roomID: { type: String, required: true },
+  msg: { type: String },
+  from: { type: String, required: true },
   timestamp: { type: Date, default: Date.now() }
 });
 

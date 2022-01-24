@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/talk', chat.initializeTalker);
 
-router.post('/listen', chat.changeListenerAvailability);
+router.put('/listen', chat.changeListenerAvailability);
 
 router.post('/:roomId', chat.leaveChat);
 

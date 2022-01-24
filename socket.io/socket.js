@@ -1,55 +1,124 @@
 import { Server } from 'socket.io';
 
 import Message from '../models/chat/message.js';
+import User from '../models/user.js';
+import Room from '../models/chat/room.js';
+
+import findListener from '../utils/findListener.js';
+import createFilters from '../utils/createFilters.js';
 
 const socket = (server) => {
-  const io = new Server(server);
+  const io = new Server(server, { cors: { origin: 'http://localhost:3000' } });
 
-  io.on('connection', (socket) => {
-    console.log('socket connected!');
+  io.use(async (socket, next) => {
+    const { userID, username, roomID } = socket.handshake.auth;
 
-    socket.on('connect', (user) => {
-      socket.join(user.id);
-      console.log(`Joined ${user.id}`);
-    });
+    socket.userID = userID;
+    socket.username = username;
 
-    socket.on('initialize chat', (user, room, match) => {
-      socket.join(room._id.toString());
-      socket.to(match.id).emit('match found', (user, room));
-    });
+    if (roomID) {
+      const { users } = await Room.findById(roomID);
 
-    socket.on('join room', (room) => {
-      socket.join(room._id.toString());
-      console.log(`Joined ${room._id}`);
-    });
+      socket.otherUserID = userID === users[0] ? users[1] : users[0];
+      socket.roomID = roomID;
+    } else {
+      const room = await Room.findOne({ users: socket.userID });
 
-    socket.on('get messages', async (room) => {
-      try {
-        const messages = await Message.find({ room: room._id }, 'msg sentBy');
+      if (room && room.users.length === 1) {
+        await Promise.all([
+          Message.deleteMany({ roomID: room._id }),
+          Room.findByIdAndDelete(room._id)
+        ]);
+      }
 
-        socket.emit('retrieved messages', messages);
-      } catch (err) {
-        console.log(err);
+      if (room && room.users.length === 2) {
+        room.users.splice(room.users.indexOf(socket.userID), 1);
+        await room.save();
+      }
+    }
+
+    next();
+  });
+
+  io.on('connection', async (socket) => {
+    console.log(`${socket.username} connected!`);
+
+    socket.join(socket.userID);
+
+    if (socket.roomID) {
+      const { profile } = await User.findById(socket.otherUserID, 'profile.username profile.img').lean();
+      const msgs = await Message.find({ roomID: socket.roomID });
+      const otherUser = {
+        userID: socket.otherUserID,
+        username: profile.username,
+        img: profile.img
+      };
+      socket.emit('reconnect', { msgs, otherUser });
+      socket.to(socket.otherUserID).emit('otherUser reconnected');
+    }
+
+    socket.on('initiate', async ({ role, filters }) => {  
+      if (role === 'listen') {
+        await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': true });
+      }
+
+      if (role === 'talk') {
+        let numOfTries = 0;
+        let match;
+    
+        while (numOfTries < 4 && !match) {
+          numOfTries++;
+          match = await findListener(socket.userID, createFilters(filters));
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+        }
+
+        if (match) {
+          const { profile } = await User.findById(socket.userID, 'profile.img').lean();
+          const listener = {
+            userID: match._id.toString(),
+            username: match.profile.username,
+            img: match.profile.img
+          };
+          
+          const room = new Room({ users: [socket.userID, listener.userID] });
+          await room.save();
+
+          socket.roomID = room._id;
+          socket.otherUserID = listener.userID;
+
+          io.to([socket.otherUserID, socket.userID]).emit('match found', {
+            roomID: room._id,
+            listener,
+            talker: {
+              userID: socket.userID,
+              username: socket.username,
+              img: profile.img
+            }
+          });
+        }
       }
     });
 
-    socket.on('new message', async (room, message) => {
-      try {
-        const msg = new Message({
-          room: room._id,
-          msg: message.msg,
-          sentBy: message.sentBy
-        });
-
-        await msg.save();
-
-        io.to(room._id.toString()).emit('new message', msg);
-      } catch (err) {
-        console.log(err);
-      }
+    socket.on('listener setup', async ({ roomID, talker }) => {
+      await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': false });
+      socket.roomID = roomID;
+      socket.otherUserID = talker.userID;
     });
 
-    socket.on('disconnect', () => console.log('user disconnected'));
+    socket.on('new msg', ({ msg }) => {
+      socket.to(socket.otherUserID).emit('new msg', msg);
+      new Message({
+        roomID: socket.roomID,
+        msg,
+        from: socket.userID
+      }).save();
+    });
+
+    socket.on('disconnect', async () => {
+      console.log(`${socket.username} disconnected!`);
+      await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': false });
+      socket.to(socket.otherUserID).emit('otherUser disconnected');
+    });
   });
 };
 

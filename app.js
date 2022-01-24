@@ -5,7 +5,7 @@ import express from 'express';
 import passport from 'passport';
 import cors from 'cors';
 import session from 'express-session';
-import { createServer } from 'http';
+import http from 'http';
 
 import socket from './socket.io/socket.js';
 
@@ -17,6 +17,7 @@ import chatRouter from './routes/chat.js';
 import friendsRouter from './routes/friends.js';
 
 const app = express();
+const server = http.createServer(app);
 
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(session({ secret: 'very secret session', resave: false, saveUninitialized: true }));
@@ -25,7 +26,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Routes
 app.use('/api/auth', authRouter);
 app.use('/api/users', passport.authenticate('jwt', { session: false }), usersRouter);
 app.use('/api/posts', passport.authenticate('jwt', { session: false }), postsRouter);
@@ -33,7 +33,5 @@ app.use('/api/comments', passport.authenticate('jwt', { session: false }), comme
 app.use('/api/chat', passport.authenticate('jwt', { session: false }), chatRouter);
 app.use('/api/friends', passport.authenticate('jwt', { session: false }), friendsRouter);
 
-const httpServer = createServer(app);
-socket(httpServer);
-
-httpServer.listen(5000, () => console.log('listening on port 5000'));
+socket(server);
+server.listen(5000, () => console.log('listening on port 5000'));
