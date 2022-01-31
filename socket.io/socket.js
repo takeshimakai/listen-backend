@@ -46,13 +46,22 @@ const socket = (server) => {
     socket.join(socket.userID);
 
     if (socket.roomID) {
-      const { profile } = await User.findById(socket.otherUserID, 'profile.username profile.img').lean();
+      const { profile } = await User.findById(socket.otherUserID, 'profile').lean();
       const msgs = await Message.find({ roomID: socket.roomID });
-      const otherUser = {
+      let otherUser = {
         userID: socket.otherUserID,
         username: profile.username,
         img: profile.img
       };
+
+      if (profile.public) {
+        for (const key in profile) {
+          if (profile.public.includes(key) && key !== 'public') {
+            otherUser[key] = profile[key];
+          }
+        }
+      }
+
       socket.emit('reconnect', { msgs, otherUser });
       socket.to(socket.otherUserID).emit('otherUser reconnected');
     }
@@ -73,12 +82,35 @@ const socket = (server) => {
         }
 
         if (match) {
-          const { profile } = await User.findById(socket.userID, 'profile.img').lean();
-          const listener = {
-            userID: match._id.toString(),
-            username: match.profile.username,
-            img: match.profile.img
+          const { profile } = await User.findById(socket.userID, 'profile').lean();
+          
+          let talker = {
+            userID: socket.userID,
+            username: socket.username,
+            img: profile.img
           };
+
+          if (profile.public) {
+            for (const key in profile) {
+              if (profile.public.includes(key) && key !== 'public') {
+                talker[key] = profile[key];
+              }
+            }
+          }
+
+          let listener = {
+            userID: match._id.toString(),
+            img: match.profile.img,
+            username: match.profile.username
+          };
+      
+          if (match.profile.public) {
+            for (const key in match.profile) {
+              if (match.profile.public.includes(key) && key !== 'public') {
+                listener[key] = match.profile[key];
+              }
+            }
+          }
           
           const room = new Room({ users: [socket.userID, listener.userID] });
           await room.save();
@@ -89,11 +121,7 @@ const socket = (server) => {
           io.to([socket.otherUserID, socket.userID]).emit('match found', {
             roomID: room._id,
             listener,
-            talker: {
-              userID: socket.userID,
-              username: socket.username,
-              img: profile.img
-            }
+            talker
           });
         }
       }
@@ -118,6 +146,102 @@ const socket = (server) => {
       console.log(`${socket.username} disconnected!`);
       await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': false });
       socket.to(socket.otherUserID).emit('otherUser disconnected');
+    });
+
+    socket.on('get friendship status', async () => {
+      const { friends } = await User.findById(socket.userID, 'friends');
+      let friendshipStatus;
+
+      if (friends.accepted.some(i => i._id.toString() === socket.otherUserID)) {
+        friendshipStatus = 'friends';
+      }
+  
+      if (friends.received.some(i => i._id.toString() === socket.otherUserID)) {
+        friendshipStatus = 'received';
+      }
+  
+      if (friends.sent.some(i => i._id.toString() === socket.otherUserID)) {
+        friendshipStatus = 'sent';
+      }
+
+      socket.emit('friendship status', { friendshipStatus });
+    });
+
+    socket.on('send request', async () => {
+      await Promise.all([
+        User.findByIdAndUpdate(
+          socket.otherUserID,
+          { $push: { 'friends.received': socket.userID } }
+        ),
+        User.findByIdAndUpdate(
+          socket.userID,
+          { $push: { 'friends.sent': socket.otherUserID } }
+        )
+      ]);
+
+      socket.emit('friendship status', { friendshipStatus: 'sent' });
+      socket.to(socket.otherUserID).emit('friendship status', { friendshipStatus: 'received' });
+    });
+
+    socket.on('delete request', async () => {
+      await Promise.all([
+        User.findByIdAndUpdate(
+          socket.otherUserID,
+          {
+            $pull: {
+              'friends.received': socket.userID,
+              'friends.sent': socket.userID
+            }
+          }
+        ),
+        User.findByIdAndUpdate(
+          socket.userID,
+          {
+            $pull: {
+              'friends.received': socket.otherUserID,
+              'friends.sent': socket.otherUserID
+            }
+          }
+        )
+      ]);
+
+      io.to([socket.otherUserID, socket.userID]).emit('friendship status', { friendshipStatus: '' });
+    });
+
+    socket.on('accept request', async () => {
+      await Promise.all([
+        User.findByIdAndUpdate(
+          socket.userID,
+          {
+            $pull: { 'friends.received': socket.otherUserID },
+            $push: { 'friends.accepted': socket.otherUserID }
+          }
+        ),
+        User.findByIdAndUpdate(
+          socket.otherUserID,
+          {
+            $pull: { 'friends.sent': socket.userID },
+            $push: { 'friends.accepted': socket.userID }
+          }
+        )
+      ]);
+
+      io.to([socket.otherUserID, socket.userID]).emit('friendship status', { friendshipStatus: 'friends' });
+    });
+
+    socket.on('unfriend', async () => {
+      await Promise.all([
+        User.findByIdAndUpdate(
+          socket.userID,
+          { $pull: { 'friends.accepted': socket.otherUserID } }
+        ),
+        User.findByIdAndUpdate(
+          socket.otherUserID,
+          { $pull: { 'friends.accepted': socket.userID } }
+        )
+      ]);
+
+      io.to([socket.otherUserID, socket.userID]).emit('friendship status', { friendshipStatus: '' });
     });
   });
 };
