@@ -80,12 +80,19 @@ const socket = (server) => {
       }
 
       if (role === 'talk') {
-        let numOfTries = 0;
         let match;
-    
-        while (numOfTries < 4 && !match) {
-          numOfTries++;
+
+        for (let i = 0; i < 5 && !match; i++) {
           match = await findListener(socket.userID, createFilters(filters));
+          
+          if (match) {
+            break;
+          }
+          
+          if (i === 4) {
+            return socket.emit('no match');
+          }
+
           await new Promise((resolve) => setTimeout(resolve, 5000));
         }
 
@@ -166,6 +173,10 @@ const socket = (server) => {
         'chat.isConnected': false
       });
       socket.to(socket.otherUserID).emit('otherUser disconnected');
+    });
+
+    socket.on('leave room', () => {
+      socket.to(socket.otherUserID).emit('user left');
     });
 
     socket.on('get friendship status', async () => {
