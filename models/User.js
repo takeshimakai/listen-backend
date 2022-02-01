@@ -18,6 +18,7 @@ const UserSchema = new Schema({
   },
   chat: {
     isListener: { type: Boolean, default: false },
+    isConnected: { type: Boolean, default: false }
   },
   forum: {
     pinned: { type: [Schema.Types.ObjectId], ref: 'Post' }

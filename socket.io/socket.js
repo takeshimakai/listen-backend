@@ -44,20 +44,25 @@ const socket = (server) => {
     console.log(`${socket.username} connected!`);
 
     socket.join(socket.userID);
-
+      
     if (socket.roomID) {
-      const { profile } = await User.findById(socket.otherUserID, 'profile').lean();
+      const [other] = await Promise.all([
+        User.findById(socket.otherUserID, 'profile chat').lean(),
+        User.findByIdAndUpdate(socket.userID, { 'chat.isConnected': true })
+      ]);
       const msgs = await Message.find({ roomID: socket.roomID });
+      
       let otherUser = {
         userID: socket.otherUserID,
-        username: profile.username,
-        img: profile.img
+        username: other.profile.username,
+        img: other.profile.img,
+        isConnected: other.chat.isConnected
       };
 
-      if (profile.public) {
-        for (const key in profile) {
-          if (profile.public.includes(key) && key !== 'public') {
-            otherUser[key] = profile[key];
+      if (other.profile.public) {
+        for (const key in other.profile) {
+          if (other.profile.public.includes(key) && key !== 'public') {
+            otherUser[key] = other.profile[key];
           }
         }
       }
@@ -68,7 +73,10 @@ const socket = (server) => {
 
     socket.on('initiate', async ({ role, filters }) => {  
       if (role === 'listen') {
-        await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': true });
+        await User.findByIdAndUpdate(socket.userID, {
+          'chat.isListener': true,
+          'chat.isConnected': true
+        });
       }
 
       if (role === 'talk') {
@@ -82,18 +90,27 @@ const socket = (server) => {
         }
 
         if (match) {
-          const { profile } = await User.findById(socket.userID, 'profile').lean();
+          const [self, other] = await Promise.all([
+            User
+              .findByIdAndUpdate(socket.userID, { 'chat.isConnected': true })
+              .select('profile')
+              .lean(),
+            User.findByIdAndUpdate(match._id, { 'chat.isListener': false })
+              .select('chat')
+              .lean()
+          ]);
           
           let talker = {
             userID: socket.userID,
             username: socket.username,
-            img: profile.img
+            img: self.profile.img,
+            isConnected: true
           };
 
-          if (profile.public) {
-            for (const key in profile) {
-              if (profile.public.includes(key) && key !== 'public') {
-                talker[key] = profile[key];
+          if (self.profile.public) {
+            for (const key in self.profile) {
+              if (self.profile.public.includes(key) && key !== 'public') {
+                talker[key] = self.profile[key];
               }
             }
           }
@@ -101,7 +118,8 @@ const socket = (server) => {
           let listener = {
             userID: match._id.toString(),
             img: match.profile.img,
-            username: match.profile.username
+            username: match.profile.username,
+            isConnected: other.chat.isConnected
           };
       
           if (match.profile.public) {
@@ -127,8 +145,7 @@ const socket = (server) => {
       }
     });
 
-    socket.on('listener setup', async ({ roomID, talker }) => {
-      await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': false });
+    socket.on('listener setup', ({ roomID, talker }) => {
       socket.roomID = roomID;
       socket.otherUserID = talker.userID;
     });
@@ -144,7 +161,10 @@ const socket = (server) => {
 
     socket.on('disconnect', async () => {
       console.log(`${socket.username} disconnected!`);
-      await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': false });
+      await User.findByIdAndUpdate(socket.userID, {
+        'chat.isListener': false,
+        'chat.isConnected': false
+      });
       socket.to(socket.otherUserID).emit('otherUser disconnected');
     });
 
