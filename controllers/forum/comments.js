@@ -94,11 +94,25 @@ const editComment = [
 ];
 
 // Delete comment by ID
-const deleteComment = (req, res, next) => {
-  Comment
-    .deleteMany({ $or: [{ _id: req.params.commentId }, { replyTo: req.params.commentId }] })
-    .then(res.sendStatus(200))
-    .catch(err => next(err));
+const deleteComment = async (req, res, next) => {
+  try {
+    let ids = [req.params.commentId];
+    let parentIds = [req.params.commentId];
+
+    while (parentIds.length > 0) {
+      const found = await Comment.find({ replyTo: { $in: parentIds } }, '_id');
+      const foundIds = [];
+      found.forEach(({ _id }) => foundIds.push(_id));
+      parentIds = foundIds;
+      ids = [...ids, ...parentIds];
+    }
+
+    await Comment.deleteMany({ _id: { $in: ids } });
+
+    return res.sendStatus(200);
+  } catch (err) {
+    next(err);
+  }
 };
 
 const editRelatable = async (req, res, next) => {
