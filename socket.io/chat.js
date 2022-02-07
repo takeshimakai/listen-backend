@@ -5,7 +5,28 @@ import Room from '../models/chat/room.js';
 import findListener from '../utils/findListener.js';
 import createFilters from '../utils/createFilters.js';
 
-const reconnect = async (socket) => {
+const cleanRoom = async (socket) => {
+  const room = await Room.findOne({ users: socket.userID });
+
+  if (room && room.users.length === 1) {
+    await Promise.all([
+      Message.deleteMany({ roomID: room._id }),
+      Room.findByIdAndDelete(room._id)
+    ]);
+  }
+
+  if (room && room.users.length === 2) {
+    room.users.splice(room.users.indexOf(socket.userID), 1);
+    await room.save();
+  }
+};
+
+const reconnect = async (socket, roomID) => {
+  const { users } = await Room.findById(roomID);
+
+  socket.otherUserID = socket.userID === users[0] ? users[1] : users[0];
+  socket.roomID = roomID;
+
   const [other] = await Promise.all([
     User.findById(socket.otherUserID, 'profile chat').lean(),
     User.findByIdAndUpdate(socket.userID, { 'chat.isConnected': true })
@@ -131,11 +152,17 @@ const disconnect = async (socket) => {
   socket.to(socket.otherUserID).emit('otherUser disconnected');
 };
 
-const leaveRoom = (socket) => {
+const leaveRoom = async (socket) => {
+  console.log(`${socket.username} left room ${socket.roomID}`);
+  await User.findByIdAndUpdate(socket.userID, {
+    'chat.isListener': false,
+    'chat.isConnected': false
+  });
   socket.to(socket.otherUserID).emit('user left');
 };
 
 export default {
+  cleanRoom,
   reconnect,
   initializeListener,
   initializeTalker,
