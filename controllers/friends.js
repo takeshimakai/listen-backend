@@ -14,6 +14,15 @@ const getFriends = async (req, res, next) => {
   }
 }
 
+const getReceivedRequests = async (req, res, next) => {
+  try {
+    const requests = await User.findById(req.user.id, 'friends.received');
+    res.status(200).json(requests);
+  } catch (err) {
+    next(err);
+  }
+}
+
 const deleteFriend = async (req, res, next) => {
   try {
     await Promise.all([
@@ -110,6 +119,7 @@ const deleteRequest = async (req, res, next) => {
 
 export default {
   getFriends,
+  getReceivedRequests,
   deleteFriend,
   acceptRequest,
   sendRequest,

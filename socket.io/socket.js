@@ -1,9 +1,6 @@
 import { Server } from 'socket.io';
 
-import Message from '../models/chat/message.js';
-import Room from '../models/chat/room.js';
-
-import friendRequest from './friendRequest.js';
+import friends from './friends.js';
 import chat from './chat.js';
 import directMessage from './directMessage.js';
 
@@ -48,15 +45,17 @@ const socket = (server) => {
 
     socket.on('leave room', () => chat.leaveRoom(socket));
 
-    socket.on('get friendship status', () => friendRequest.getStatus(socket));
+    socket.on('get friendship status', () => friends.getFriendshipStatus(socket));
 
-    socket.on('send request', () => friendRequest.send(socket));
+    socket.on('send request', (recipientID) => friends.send(socket, recipientID));
 
-    socket.on('delete request', () => friendRequest.remove(io, socket));
+    socket.on('decline request', (recipientID) => friends.decline(io, socket, recipientID));
 
-    socket.on('accept request', () => friendRequest.accept(io, socket));
+    socket.on('cancel request', (recipientID) => friends.cancel(socket, recipientID));
 
-    socket.on('unfriend', () => friendRequest.unfriend(io, socket));
+    socket.on('accept request', (recipientID) => friends.accept(io, socket, recipientID));
+
+    socket.on('unfriend', (recipientID) => friends.unfriend(socket, recipientID));
 
     socket.on('get dms', () => directMessage.getAll(socket));
 

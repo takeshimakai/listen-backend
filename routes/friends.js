@@ -9,6 +9,8 @@ router.get('/', friends.getFriends);
 
 router.delete('/', friends.deleteFriend);
 
+router.get('/received', friends.getReceivedRequests);
+
 // Send friend request
 router.post('/requests', friends.sendRequest);
 
