@@ -153,7 +153,6 @@ const disconnect = async (socket) => {
 };
 
 const leaveRoom = async (socket) => {
-  console.log(`${socket.username} left room ${socket.roomID}`);
   await User.findByIdAndUpdate(socket.userID, {
     'chat.isListener': false,
     'chat.isConnected': false

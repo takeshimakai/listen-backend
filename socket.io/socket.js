@@ -1,4 +1,5 @@
 import { Server } from 'socket.io';
+import passport from 'passport';
 
 import friends from './friends.js';
 import chat from './chat.js';
@@ -7,10 +8,14 @@ import directMessage from './directMessage.js';
 const socket = (server) => {
   const io = new Server(server, { cors: { origin: 'http://localhost:3000' } });
 
-  io.use(async (socket, next) => {
-    const { userID, username } = socket.handshake.auth;
+  const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
 
-    socket.userID = userID;
+  io.use(wrap(passport.authenticate('jwt', { session: false })));
+
+  io.use(async (socket, next) => {
+    const { id, username } = socket.request.user;
+
+    socket.userID = id;
     socket.username = username;
 
     next();
