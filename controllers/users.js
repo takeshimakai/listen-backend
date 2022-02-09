@@ -14,11 +14,10 @@ const getProfile = async (req, res, next) => {
       return res.status(200).json(user);
     }
 
-    const user = await User.findById(req.params.userId, 'profile friends').lean();
+    const user = await User.findById(req.params.userId, 'profile').lean();
     let filtered = {
       _id: user._id,
-      profile: { username: user.profile.username },
-      friendshipStatus: ''
+      profile: { username: user.profile.username, img: user.profile.img }
     };
 
     if (user.profile.public) {
@@ -27,18 +26,6 @@ const getProfile = async (req, res, next) => {
           filtered.profile[key] = user.profile[key];
         }
       }
-    }
-
-    if (user.friends.accepted.some(i => i._id.toString() === req.user.id)) {
-      filtered.friendshipStatus = 'friends';
-    }
-
-    if (user.friends.received.some(i => i._id.toString() === req.user.id)) {
-      filtered.friendshipStatus = 'sent';
-    }
-
-    if (user.friends.sent.some(i => i._id.toString() === req.user.id)) {
-      filtered.friendshipStatus = 'received';
     }
 
     return res.status(200).json(filtered);

@@ -45,7 +45,7 @@ const socket = (server) => {
 
     socket.on('leave room', () => chat.leaveRoom(socket));
 
-    socket.on('get friendship status', () => friends.getFriendshipStatus(socket));
+    socket.on('get friendship status', (otherUserID) => friends.getFriendshipStatus(socket, otherUserID));
 
     socket.on('send request', (recipientID) => friends.send(socket, recipientID));
 

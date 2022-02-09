@@ -81,19 +81,19 @@ const unfriend = async (socket, recipientID) => {
   socket.to(recipientID).emit('unfriended', { unfriendedBy: socket.userID });
 };
 
-const getFriendshipStatus = async (socket) => {
+const getFriendshipStatus = async (socket, otherUserID) => {
   const { friends } = await User.findById(socket.userID, 'friends');
   let friendshipStatus;
 
-  if (friends.accepted.some(i => i._id.toString() === socket.otherUserID)) {
+  if (friends.accepted.some(i => i._id.toString() === otherUserID)) {
     friendshipStatus = 'friends';
   }
 
-  if (friends.received.some(i => i._id.toString() === socket.otherUserID)) {
+  if (friends.received.some(i => i._id.toString() === otherUserID)) {
     friendshipStatus = 'received';
   }
 
-  if (friends.sent.some(i => i._id.toString() === socket.otherUserID)) {
+  if (friends.sent.some(i => i._id.toString() === otherUserID)) {
     friendshipStatus = 'sent';
   }
 
