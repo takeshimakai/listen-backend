@@ -1,4 +1,3 @@
-import './config/passport.js';
 import './config/mongoDB.js';
 
 import express from 'express';

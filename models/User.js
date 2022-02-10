@@ -27,7 +27,7 @@ const UserSchema = new Schema({
     img: { data: Buffer, contentType: String },
     username: String,
     dob: Date,
-    gender: { type: String, enum: ['Female', 'Male', 'Non-binary', 'Other'] },
+    gender: { type: String, enum: ['Female', 'Male', 'Non-binary', 'Other', ''] },
     interests: { type: [String] },
     problemTopics: {
       type: [String],

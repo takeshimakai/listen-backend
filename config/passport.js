@@ -58,6 +58,7 @@ passport.use(new googleStrategy({
     if (user && !user.auth.googleId) {
       user.auth.googleId = profile.id;
       user.auth.password = null;
+      user.auth.verification.verified = true;
       await user.save();
       return done(null, user);
     }
@@ -65,7 +66,9 @@ passport.use(new googleStrategy({
     user = new User({
       auth: {
         googleId: profile.id,
-        email: profile.emails[0].value
+        email: profile.emails[0].value,
+        password: null,
+        verification: { verified: true }
       }
     });
 

@@ -144,7 +144,11 @@ const googleLogin = (req, res) => {
 }
 
 const googleSuccess = (req, res) => {
-  const token = jwt.sign({ id: req.user._id, username: req.user.profile.username }, process.env.JWT_SECRET);
+  const token = jwt.sign({
+    id: req.user._id,
+    username: req.user.profile.username,
+    verified: req.user.auth.verification.verified
+  }, process.env.JWT_SECRET);
   req.logout();
   res.status(200).json(token);
 }
