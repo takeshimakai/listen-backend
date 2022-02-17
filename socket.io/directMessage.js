@@ -1,72 +1,95 @@
-import ParentDM from '../models/ParentDM.js';
-import ChildDM from '../models/ChildDM.js';
+import DirectMsg from '../models/DirectMsg.js';
+import Thread from '../models/Thread.js';
 
 const getAll = async (socket) => {
-  const msgs = await ParentDM
-    .find({ to: socket.userID, from: socket.userID, deleted: { $ne: socket.userID } })
-    .populate('from', 'profile.username')
-    .populate('to', 'profile.username');
+  const threads = await Thread
+    .find({
+      users: { $in: [socket.userID] },
+      deleted: { $ne: socket.userID }
+    }, '-deleted')
+    .populate({
+      path: 'msgs',
+      populate: {
+        path: 'from',
+        select: 'profile.username'
+      }
+    });
 
-  msgs.forEach(async (msg) => {
-    const replies = await ChildDM
-      .find({ parentId: msg._id })
-      .populate('from', 'profile.username')
-      .populate('to', 'profile.username');
+  threads.length > 0 && socket.emit('all dms', threads);
+};
 
-    msg.replies = replies;
+const send = async (socket, msg) => {
+  let thread;
+
+  if (msg.threadId) {
+    thread = await Thread.findById(msg.threadId);
+
+    if (thread.deleted.includes(msg.to)) {
+      thread.deleted.splice(thread.indexOf(msg.to), 1);
+    }
+  } else {
+    thread = new Thread({
+      users: [socket.userID, msg.to],
+      subject: msg.subject
+    });
+  }
+
+  const newMsg = new DirectMsg({
+    threadId: thread._id,
+    from: socket.userID,
+    body: msg.body,
+    read: [socket.userID]
   });
 
-  socket.emit('all dms', msgs);
+  await newMsg.save();
+
+  thread.lastUpdated = Date.now();
+  thread.msgs.push(newMsg._id);
+  await thread.save();
+
+  await thread
+    .populate({
+      path: 'msgs',
+      populate: {
+        path: 'from',
+        select: 'profile.username'
+      }
+    })
+    .execPopulate();
+
+  const filtered = {
+    _id: thread._id,
+    subject: thread.subject,
+    lastUpdated: thread.lastUpdated,
+    msgs: thread.msgs,
+    users: thread.users
+  };
+
+  socket.to(msg.to).emit('new dm', filtered);
+  socket.emit('dm success', filtered);
 };
 
-const send = (socket, msg) => {
-  if (msg.new) {
-    new ParentDM({
-      from: socket.userID,
-      to: msg.to,
-      title: msg.title,
-      body: msg.body,
-      read: [socket.userID]
-    }).save();
-  } else {
-    new ChildDM({
-      parentId: msg.parentId,
-      replyTo: msg.replyTo,
-      from: socket.userID,
-      to: msg.to,
-      body: msg.body,
-      read: [socket.userID]
-    }).save();
-  }
+const delThread = async (socket, threadID) => {
+  const thread = await Thread.findById(threadID);
 
-  socket.to(msg.to).emit('new dm');
-};
-
-const delMsg = async (socket, msgID) => {
-  const dm = await ParentDM.findById(msgID);
-
-  if (dm.deleted.length > 0) {
+  if (thread.deleted.length > 0) {
     await Promise.all([
-      ParentDM.findByIdAndDelete(msgID),
-      ChildDM.deleteMany({ parentId: msgID })
+      DirectMsg.deleteMany({ threadId: threadID }),
+      Thread.findByIdAndDelete(threadID)
     ]);
   } else {
-    dm.deleted.push(socket.userID);
-    await dm.save();
+    thread.deleted.push(socket.userID);
+    await thread.save();
   }
 };
 
-const markAsRead = (socket, msg) => {
-  if (msg.isParent) {
-    ParentDM.findByIdAndUpdate(msg._id, { $push: { read: socket.userID } });
-  } else {
-    ChildDM.findByIdAndUpdate(msg._id, { $push: { read: socket.userID } });
-  }
+const markAsRead = async (socket, msgID) => {
+  await DirectMsg.findByIdAndUpdate(msgID, { $push: { read: socket.userID } });
 };
 
 export default {
   getAll,
   send,
-  delMsg,
+  delThread,
   markAsRead
 };

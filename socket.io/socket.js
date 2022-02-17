@@ -52,6 +52,8 @@ const socket = (server) => {
 
     socket.on('get friendship status', (otherUserID) => friends.getFriendshipStatus(socket, otherUserID));
 
+    socket.on('get friends', (type) => friends.getFriends(socket, type));
+
     socket.on('send request', (recipientID) => friends.send(socket, recipientID));
 
     socket.on('decline request', (recipientID) => friends.decline(io, socket, recipientID));
@@ -66,9 +68,9 @@ const socket = (server) => {
 
     socket.on('send dm', (msg) => directMessage.send(socket, msg));
 
-    socket.on('delete dm', (msgID) => directMessage.delMsg(socket, msgID));
+    socket.on('delete thread', (threadID) => directMessage.delThread(socket, threadID));
 
-    socket.on('mark as read', (msg) => directMessage.markAsRead(socket, msg));
+    socket.on('mark as read', (msgID) => directMessage.markAsRead(socket, msgID));
   });
 };
 

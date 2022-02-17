@@ -1,5 +1,23 @@
 import User from '../models/user.js';
 
+const getFriends = async (socket, type) => {
+  if (type === 'all') {
+    const { friends } = await User
+      .findById(socket.userID, 'friends')
+      .populate('friends.accepted', 'profile.username')
+      .populate('friends.received', 'profile.username')
+      .populate('friends.sent', 'profile.username');
+    
+    return socket.emit('all friends', friends);
+  }
+
+  const { friends } = await User
+    .findById(socket.userID, `friends.${type}`)
+    .populate(`friends.${type}`, 'profile.username');
+
+  socket.emit(`${type} friends`, friends[type]);
+};
+
 const send = async (socket, recipientID) => {
   await Promise.all([
     User.findByIdAndUpdate(
@@ -101,10 +119,11 @@ const getFriendshipStatus = async (socket, otherUserID) => {
 };
 
 export default {
+  getFriends,
   send,
   decline,
   cancel,
   accept,
   unfriend,
   getFriendshipStatus
-};
+}
