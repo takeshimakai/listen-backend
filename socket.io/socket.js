@@ -42,6 +42,8 @@ const socket = (server) => {
       }
     });
 
+    socket.on('listener abort match', () => chat.listenerAbortMatch(socket));
+
     socket.on('listener setup', ({ roomID, talker }) => chat.listenerSetUp(socket, roomID, talker));
 
     socket.on('new msg', ({ msg }) => chat.newMsg(socket, msg));

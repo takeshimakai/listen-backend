@@ -53,10 +53,7 @@ const reconnect = async (socket, roomID) => {
 };
 
 const initializeListener = async (socket) => {
-  await User.findByIdAndUpdate(socket.userID, {
-    'chat.isListener': true,
-    'chat.isConnected': true
-  });
+  await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': true });
 };
 
 const initializeTalker = async (io, socket, filters) => {
@@ -81,7 +78,10 @@ const initializeTalker = async (io, socket, filters) => {
       .findByIdAndUpdate(socket.userID, { 'chat.isConnected': true })
       .select('profile')
       .lean(),
-    User.findByIdAndUpdate(match._id, { 'chat.isListener': false })
+    User.findByIdAndUpdate(match._id, {
+      'chat.isListener': false,
+      'chat.isConnected': true
+    }, { new: true })
       .select('chat')
       .lean()
   ]);
@@ -129,6 +129,10 @@ const initializeTalker = async (io, socket, filters) => {
   });
 };
 
+const listenerAbortMatch = async (socket) => {
+  await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': false });
+};
+
 const listenerSetUp = (socket, roomID, talker) => {
   socket.roomID = roomID;
   socket.otherUserID = talker.userID;
@@ -165,6 +169,7 @@ export default {
   reconnect,
   initializeListener,
   initializeTalker,
+  listenerAbortMatch,
   listenerSetUp,
   newMsg,
   disconnect,
