@@ -19,6 +19,20 @@ const getAll = async (socket) => {
 };
 
 const send = async (socket, msg) => {
+  let errors = {};
+
+  if (!msg.to) {
+    errors.to = 'The recipient must be from your friends list.';
+  }
+
+  if (!msg.body) {
+    errors.body = 'A message is required.';
+  }
+
+  if (errors) {
+    return socket.emit('dm error', errors);
+  }
+
   let thread;
 
   if (msg.threadId) {
