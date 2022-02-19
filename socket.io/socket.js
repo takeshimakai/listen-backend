@@ -68,6 +68,8 @@ const socket = (server) => {
 
     socket.on('get dms', () => directMessage.getAll(socket));
 
+    socket.on('get unread dm count', () => directMessage.getUnreadCount(socket));
+
     socket.on('send dm', (msg) => directMessage.send(socket, msg));
 
     socket.on('delete thread', (threadID) => directMessage.delThread(socket, threadID));

@@ -18,6 +18,30 @@ const getAll = async (socket) => {
   threads.length > 0 && socket.emit('all dms', threads);
 };
 
+const getUnreadCount = async (socket) => {
+  const threads = await Thread
+  .find({
+    users: { $in: [socket.userID] },
+    deleted: { $ne: socket.userID }
+  }, 'msgs')
+  .populate({
+    path: 'msgs',
+    select: 'read'
+  });
+
+  let count = 0;
+
+  threads.forEach(thread => {
+    thread.msgs.forEach(msg => {
+      if (!msg.read.includes(socket.userID)) {
+        count++;
+      }
+    })
+  });
+
+  socket.emit('unread dm count', count);
+};
+
 const send = async (socket, msg) => {
   let errors = {};
 
@@ -29,7 +53,7 @@ const send = async (socket, msg) => {
     errors.body = 'A message is required.';
   }
 
-  if (errors) {
+  if (Object.keys(errors).length > 0) {
     return socket.emit('dm error', errors);
   }
 
@@ -99,10 +123,13 @@ const delThread = async (socket, threadID) => {
 
 const markAsRead = async (socket, msgID) => {
   await DirectMsg.findByIdAndUpdate(msgID, { $push: { read: socket.userID } });
+
+  socket.emit('marked as read');
 };
 
 export default {
   getAll,
+  getUnreadCount,
   send,
   delThread,
   markAsRead
