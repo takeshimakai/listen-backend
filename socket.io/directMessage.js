@@ -63,7 +63,7 @@ const send = async (socket, msg) => {
     thread = await Thread.findById(msg.threadId);
 
     if (thread.deleted.includes(msg.to)) {
-      thread.deleted.splice(thread.indexOf(msg.to), 1);
+      thread.deleted.splice(thread.deleted.indexOf(msg.to), 1);
     }
   } else {
     thread = new Thread({
