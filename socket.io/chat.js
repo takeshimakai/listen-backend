@@ -122,20 +122,17 @@ const initializeTalker = async (io, socket, filters) => {
   socket.roomID = room._id;
   socket.otherUserID = listener.userID;
 
-  io.to([socket.otherUserID, socket.userID]).emit('match found', {
-    roomID: room._id,
-    listener,
-    talker
-  });
+  socket.emit('match found', { roomID: room._id, otherUser: listener });
+  socket.to(socket.otherUserID).emit('match found', { roomID: room._id, otherUser: talker });
 };
 
 const listenerAbortMatch = async (socket) => {
   await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': false });
 };
 
-const listenerSetUp = (socket, roomID, talker) => {
+const listenerSetUp = (socket, roomID, otherUserID) => {
   socket.roomID = roomID;
-  socket.otherUserID = talker.userID;
+  socket.otherUserID = otherUserID;
 };
 
 const newMsg = (socket, msg) => {
