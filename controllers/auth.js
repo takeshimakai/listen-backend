@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 
+import transporter from '../config/nodemailer.js';
+
 import User from '../models/user.js';
 
 import generateCode from '../utils/generateCode.js';
@@ -68,6 +70,15 @@ const signUp = [
         { id: newUser._id, verified: newUser.auth.verification.verified },
         process.env.JWT_SECRET
       );
+
+      const mailOptions = {
+        from: '"Listen" <listen.app.test@gmail.com>',
+        to: req.body.email,
+        subject: `Your email verification code is ${randomCode}`,
+        html: `<p>To complete your sign up process, enter the following code: <b>${randomCode}</b></p>`
+      };
+
+      await transporter.sendMail(mailOptions);
 
       return res.status(200).json(token);
     } catch (err) {
