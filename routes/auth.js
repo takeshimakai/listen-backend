@@ -9,6 +9,10 @@ const router = express.Router();
 
 router.post('/signup', auth.signUp);
 
+router.post('/forgot-password', auth.forgotPassword);
+
+router.post('/reset-password', auth.resetPassword);
+
 router.post('/verify', passport.authenticate('jwt', { session: false }), auth.emailVerification);
 
 router.post('/login', auth.login);

@@ -37,7 +37,7 @@ const signUp = [
 
   body('passwordConfirmation')
   .custom((value, { req }) => value === req.body.password)
-  .withMessage('Password confirmation does not match the password.'),
+  .withMessage('Password confirmation does not match.'),
 
   async (req, res, next) => {
     try {
@@ -48,11 +48,7 @@ const signUp = [
       }
 
       const hashedPw = await bcrypt.hash(req.body.password, 10);
-      let randomCode = generateCode(0, 9999).toString();
-
-      if (randomCode.length < 4) {
-        randomCode = randomCode.padStart(4, '0');
-      }
+      let randomCode = generateCode().toString();
       
       const newUser = new User({
         auth: {
@@ -71,14 +67,113 @@ const signUp = [
         process.env.JWT_SECRET
       );
 
-      const mailOptions = {
+      await transporter.sendMail({
         from: '"Listen" <listen.app.test@gmail.com>',
         to: req.body.email,
         subject: `Your email verification code is ${randomCode}`,
         html: `<p>To complete your sign up process, enter the following code: <b>${randomCode}</b></p>`
-      };
+      });
 
-      await transporter.sendMail(mailOptions);
+      return res.status(200).json(token);
+    } catch (err) {
+      next(err);
+    }
+  }
+];
+
+const forgotPassword = [
+  body('email')
+  .trim()
+  .toLowerCase()
+  .isEmail()
+  .withMessage('Please enter a valid email.'),
+
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json(errors);
+      }
+
+      const user = await User.findOne({ 'auth.email': req.body.email });
+
+      if (!user) {
+        return res.status(404).json({ msg: 'The email is not registered.' });
+      }
+
+      const code = generateCode().toString();
+
+      user.auth.verification.code = code;
+      await user.save();
+
+      await transporter.sendMail({
+        from: '"Listen" <listen.app.test@gmail.com>',
+        to: req.body.email,
+        subject: `Your email verification code is ${code}`,
+        html: `<p>To reset your password, enter the following code: <b>${code}</b></p>`
+      });
+
+      return res.sendStatus(200);
+    } catch (err) {
+      next(err);
+    }
+  }
+];
+
+const resetPassword = [
+  body('code')
+  .notEmpty()
+  .withMessage('Please enter a verification code.')
+  .custom((value, { req }) => {
+    return User
+      .findOne({ 'auth.email': req.body.email }, 'auth.verification.code')
+      .then(user => {
+        if (user.auth.verification.code !== value) {
+          return Promise.reject('The code entered is incorrect.');
+        }
+      });
+  }),
+
+  body('password')
+  .notEmpty()
+  .withMessage('Password is required.')
+  .custom(value => !/\s/.test(value))
+  .withMessage('No spaces are allowed in the password.'),
+
+  body('passwordConfirmation')
+  .custom((value, { req }) => value === req.body.password)
+  .withMessage('Password confirmation does not match.'),
+
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json(errors);
+      }
+
+      const hashedPw = await bcrypt.hash(req.body.password, 10);
+
+      const user = await User.findOneAndUpdate(
+        { 'auth.email': req.body.email },
+        {
+          'auth.password': hashedPw,
+          'auth.verification.code': undefined,
+          'auth.verification.verified': true
+        },
+        {
+          new: true,
+          fields: 'auth.verification.verified profile.username',
+          lean: true
+        }
+      );
+
+      const token = jwt.sign({
+        id: user._id,
+        username: user.profile.username,
+        verified: user.auth.verification.verified
+      }, process.env.JWT_SECRET);
 
       return res.status(200).json(token);
     } catch (err) {
@@ -166,6 +261,8 @@ const googleSuccess = (req, res) => {
 
 export default {
   signUp,
+  forgotPassword,
+  resetPassword,
   emailVerification,
   login,
   googleLogin,
