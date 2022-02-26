@@ -2,7 +2,7 @@ const generateCode = () => {
   const min = Math.ceil(0);
   const max = Math.floor(9999);
   
-  let code = Math.floor(Math.random() * (max - min + 1) + min);
+  let code = Math.floor(Math.random() * (max - min + 1) + min).toString();
 
   if (code.length < 4) {
     code = code.padStart(4, '0');

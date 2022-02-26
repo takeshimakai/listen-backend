@@ -48,7 +48,7 @@ const signUp = [
       }
 
       const hashedPw = await bcrypt.hash(req.body.password, 10);
-      let randomCode = generateCode().toString();
+      const randomCode = generateCode();
       
       const newUser = new User({
         auth: {
@@ -81,6 +81,29 @@ const signUp = [
   }
 ];
 
+const resendVerificationCode = async (req, res, next) => {
+  try {
+    const code = generateCode();
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { 'auth.verification.code': code },
+      { fields: 'auth.email' }
+    );
+
+    await transporter.sendMail({
+      from: '"Listen" <listen.app.test@gmail.com>',
+      to: user.auth.email,
+      subject: `Your email verification code is ${code}`,
+      html: `<p>To complete your sign up process, enter the following code: <b>${code}</b></p>`
+    });
+
+    res.status(200).json({ email: user.auth.email });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const forgotPassword = [
   body('email')
   .trim()
@@ -102,7 +125,7 @@ const forgotPassword = [
         return res.status(404).json({ msg: 'The email is not registered.' });
       }
 
-      const code = generateCode().toString();
+      const code = generateCode();
 
       user.auth.verification.code = code;
       await user.save();
@@ -225,13 +248,18 @@ const login = [
       return res.status(400).json(errors);
     }
 
-    passport.authenticate('login', { session: false }, (err, user, info) => {
+    passport.authenticate('login', { session: false }, async (err, user, info) => {
       if (err) {
         return next(err);
       }
 
       if (!user) {
         return res.status(401).json(info);
+      }
+
+      if (user.auth.verification.verified && user.auth.verification.code) {
+        user.auth.verification.code = undefined;
+        await user.save();
       }
 
       const token = jwt.sign({
@@ -261,6 +289,7 @@ const googleSuccess = (req, res) => {
 
 export default {
   signUp,
+  resendVerificationCode,
   forgotPassword,
   resetPassword,
   emailVerification,
