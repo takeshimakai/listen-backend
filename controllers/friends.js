@@ -4,9 +4,10 @@ const getFriends = async (req, res, next) => {
   try {
     const friends = await User
       .findById(req.user.id, 'friends')
-      .populate('friends.accepted', 'profile.username')
-      .populate('friends.received', 'profile.username')
-      .populate('friends.sent', 'profile.username');
+      .populate('friends.accepted', 'profile.username profile.img')
+      .populate('friends.received', 'profile.username profile.img')
+      .populate('friends.sent', 'profile.username profile.img')
+      .lean();
 
     res.status(200).json(friends);
   } catch (err) {
