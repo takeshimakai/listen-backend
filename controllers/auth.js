@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken';
 
 import transporter from '../config/nodemailer.js';
 
-import User from '../models/user.js';
+import User from '../models/User.js';
 
 import generateCode from '../utils/generateCode.js';
 

@@ -1,7 +1,7 @@
 import expressValidator from 'express-validator';
 
-import Post from '../../models/forum/Post.js';
-import Comment from '../../models/forum/Comment.js';
+import Post from '../models/Post.js';
+import Comment from '../models/Comment.js';
 
 const { body, validationResult } = expressValidator;
 

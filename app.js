@@ -10,8 +10,8 @@ import socket from './socket.io/socket.js';
 
 import authRouter from './routes/auth.js';
 import usersRouter from './routes/users.js';
-import postsRouter from './routes/forum/posts.js';
-import commentsRouter from './routes/forum/comments.js';
+import postsRouter from './routes/posts.js';
+import commentsRouter from './routes/comments.js';
 import friendsRouter from './routes/friends.js';
 
 const app = express();

@@ -1,6 +1,6 @@
-import Message from '../models/chat/message.js';
-import User from '../models/user.js';
-import Room from '../models/chat/room.js';
+import Message from '../models/Message.js';
+import User from '../models/User.js';
+import Room from '../models/Room.js';
 
 import findListener from '../utils/findListener.js';
 import createFilters from '../utils/createFilters.js';

@@ -5,7 +5,7 @@ import passportJwt from 'passport-jwt';
 import passportGoogle from 'passport-google-oauth';
 import bcrypt from 'bcryptjs';
 
-import User from '../models/user.js';
+import User from '../models/User.js';
 
 dotenv.config();
 
