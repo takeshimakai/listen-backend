@@ -56,7 +56,7 @@ const initializeListener = async (socket) => {
   await User.findByIdAndUpdate(socket.userID, { 'chat.isListener': true });
 };
 
-const initializeTalker = async (io, socket, filters) => {
+const initializeTalker = async (socket, filters) => {
   let match;
 
   for (let i = 0; i < 5 && !match; i++) {

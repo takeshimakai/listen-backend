@@ -38,7 +38,7 @@ const socket = (server) => {
       }
 
       if (role === 'talk') {
-        chat.initializeTalker(io, socket, filters);
+        chat.initializeTalker(socket, filters);
       }
     });
 

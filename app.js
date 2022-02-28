@@ -1,4 +1,4 @@
-import './config/mongoDB.js';
+import 'dotenv/config';
 
 import express from 'express';
 import passport from 'passport';
@@ -7,6 +7,7 @@ import session from 'express-session';
 import http from 'http';
 
 import socket from './socket.io/socket.js';
+import connectMongoDB from './config/mongoDB.js';
 
 import authRouter from './routes/auth.js';
 import usersRouter from './routes/users.js';
@@ -30,5 +31,6 @@ app.use('/api/posts', passport.authenticate('jwt', { session: false }), postsRou
 app.use('/api/comments', passport.authenticate('jwt', { session: false }), commentsRouter);
 app.use('/api/friends', passport.authenticate('jwt', { session: false }), friendsRouter);
 
+connectMongoDB();
 socket(server);
 server.listen(5000, () => console.log('listening on port 5000'));

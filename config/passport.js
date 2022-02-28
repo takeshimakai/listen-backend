@@ -1,4 +1,3 @@
-import dotenv from 'dotenv';
 import passport from 'passport';
 import passportLocal from 'passport-local';
 import passportJwt from 'passport-jwt';
@@ -6,8 +5,6 @@ import passportGoogle from 'passport-google-oauth';
 import bcrypt from 'bcryptjs';
 
 import User from '../models/User.js';
-
-dotenv.config();
 
 const localStrategy = passportLocal.Strategy;
 const jwtStrategy = passportJwt.Strategy;
