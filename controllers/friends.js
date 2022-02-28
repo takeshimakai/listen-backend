@@ -71,12 +71,10 @@ const acceptRequest = async (req, res, next) => {
 const sendRequest = async (req, res, next) => {
   try {
     await Promise.all([
-      // Update recipient's received friend requests
       User.findByIdAndUpdate(
         req.body.userId,
         { $push: { 'friends.received': req.user.id } }
       ),
-      // Update user's sent friend requests
       User.findByIdAndUpdate(
         req.user.id,
         { $push: { 'friends.sent': req.body.userId } }

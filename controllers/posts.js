@@ -5,7 +5,6 @@ import Comment from '../models/Comment.js';
 
 const { body, validationResult } = expressValidator;
 
-// Get all posts
 const getAllPosts = async (req, res, next) => {
   try {
     const posts = await Post.find().populate('postedBy', 'profile.username');
@@ -24,7 +23,6 @@ const getPostsByUser = async (req, res, next) => {
   }
 }
 
-// Save new post
 const savePost = [
   body('topics')
   .notEmpty()

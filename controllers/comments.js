@@ -4,7 +4,6 @@ import Comment from '../models/Comment.js';
 
 const { body, validationResult } = expressValidator;
 
-// Get all comments relating to specified post
 const getComments = (req, res, next) => {
   Comment
   .find({ postId: req.params.postId })
@@ -25,7 +24,6 @@ const getCommentsByUser = async (req, res, next) => {
   }
 }
 
-// Save new comment
 const saveComment = [
   body('content')
   .trim()
@@ -48,7 +46,6 @@ const saveComment = [
         datePosted: Date.now()
       });
 
-      //await comment.save();
       await comment.save()
       await comment.populate('postedBy', 'profile.username').execPopulate();
 
@@ -59,7 +56,6 @@ const saveComment = [
   }
 ];
 
-// Edit comment
 const editComment = [
   body('content')
   .trim()
@@ -93,7 +89,6 @@ const editComment = [
   }
 ];
 
-// Delete comment by ID
 const deleteComment = async (req, res, next) => {
   try {
     let ids = [req.params.commentId];
