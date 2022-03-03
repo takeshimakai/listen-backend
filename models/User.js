@@ -20,9 +20,6 @@ const UserSchema = new Schema({
     isListener: { type: Boolean, default: false },
     isConnected: { type: Boolean, default: false }
   },
-  forum: {
-    pinned: { type: [Schema.Types.ObjectId], ref: 'Post' }
-  },
   profile: {
     img: { data: Buffer, contentType: String },
     username: String,
