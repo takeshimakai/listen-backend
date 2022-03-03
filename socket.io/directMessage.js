@@ -1,5 +1,6 @@
 import DirectMsg from '../models/DirectMsg.js';
 import Thread from '../models/Thread.js';
+import User from '../models/User.js';
 
 const getAll = async (socket) => {
   const threads = await Thread
@@ -45,8 +46,10 @@ const getUnreadCount = async (socket) => {
 const send = async (socket, msg) => {
   let errors = {};
 
-  if (!msg.to) {
-    errors.to = 'The recipient must be from your friends list.';
+  const { friends } = await User.findById(socket.userID, 'friends.accepted');
+
+  if (!msg.to || !friends.accepted.includes(msg.to)) {
+    errors.to = 'The recipient must be on your friends list.';
   }
 
   if (!msg.body) {
