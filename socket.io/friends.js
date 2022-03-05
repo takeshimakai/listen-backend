@@ -19,18 +19,19 @@ const getFriends = async (socket, type) => {
 };
 
 const send = async (socket, recipientID) => {
-  await Promise.all([
+  const [self] = await Promise.all([
+    User.findByIdAndUpdate(
+      socket.userID,
+      { $push: { 'friends.sent': recipientID } },
+      { fields: 'profile.username' }
+    ),
     User.findByIdAndUpdate(
       recipientID,
       { $push: { 'friends.received': socket.userID } }
-    ),
-    User.findByIdAndUpdate(
-      socket.userID,
-      { $push: { 'friends.sent': recipientID } }
     )
   ]);
 
-  socket.to(recipientID).emit('request received', { sentBy: socket.userID });
+  socket.to(recipientID).emit('request received', { sentBy: socket.userID, username: self.profile.username });
 };
 
 const decline = async (io, socket, recipientID) => {
