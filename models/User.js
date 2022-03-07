@@ -3,6 +3,10 @@ const { Schema } = mongoose;
 
 const UserSchema = new Schema({
   auth: {
+    refreshToken: {
+      token: String,
+      exp: Number
+    },
     email: String,
     password: String,
     googleId: String,

@@ -2,6 +2,7 @@ import expressValidator from 'express-validator';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 
 import transporter from '../config/nodemailer.js';
 
@@ -49,9 +50,14 @@ const signUp = [
 
       const hashedPw = await bcrypt.hash(req.body.password, 10);
       const randomCode = generateCode();
+      const refreshToken = uuidv4();
       
       const newUser = new User({
         auth: {
+          refreshToken: {
+            token: refreshToken,
+            exp: Math.floor(Date.now()/1000) + 43200
+          },
           email: req.body.email,
           password: hashedPw,
           verification: {
@@ -64,7 +70,8 @@ const signUp = [
 
       const token = jwt.sign(
         { id: newUser._id, verified: newUser.auth.verification.verified },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        { expiresIn: '15m' }
       );
 
       await transporter.sendMail({
@@ -74,7 +81,7 @@ const signUp = [
         html: `<p>To complete your sign up process, enter the following code: <b>${randomCode}</b></p>`
       });
 
-      return res.status(200).json(token);
+      return res.status(200).json({ token, refreshToken });
     } catch (err) {
       next(err);
     }
@@ -177,10 +184,13 @@ const resetPassword = [
       }
 
       const hashedPw = await bcrypt.hash(req.body.password, 10);
+      const refreshToken = uuidv4();
 
       const user = await User.findOneAndUpdate(
         { 'auth.email': req.body.email },
         {
+          'auth.refreshToken.token': refreshToken,
+          'auth.refreshToken.exp': Math.floor(Date.now()/1000 + 43200),
           'auth.password': hashedPw,
           'auth.verification.code': undefined,
           'auth.verification.verified': true
@@ -196,9 +206,9 @@ const resetPassword = [
         id: user._id,
         username: user.profile.username,
         verified: user.auth.verification.verified
-      }, process.env.JWT_SECRET);
+      }, process.env.JWT_SECRET, { expiresIn: '15m' });
 
-      return res.status(200).json(token);
+      return res.status(200).json({ token, refreshToken });
     } catch (err) {
       next(err);
     }
@@ -214,6 +224,10 @@ const emailVerification = async (req, res, next) => {
       return res.status(400).json({ msg: 'The code entered is incorrect.' });
     }
 
+    const refreshToken = uuidv4();
+
+    user.auth.refreshToken.token = refreshToken;
+    user.auth.refreshToken.exp = Math.floor(Date.now()/1000 + 43200);
     user.auth.verification.verified = true;
     user.auth.verification.code = undefined;
 
@@ -221,10 +235,11 @@ const emailVerification = async (req, res, next) => {
 
     const token = jwt.sign(
       { id: user._id, verified: user.auth.verification.verified },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
     );
 
-    return res.status(200).json(token);
+    return res.status(200).json({ token, refreshToken });
   } catch (err) {
     next(err);
   }
@@ -248,7 +263,7 @@ const login = [
       return res.status(400).json(errors);
     }
 
-    passport.authenticate('login', { session: false }, async (err, user, info) => {
+    passport.authenticate('login', { session: false }, async (err, user, info) => {      
       if (err) {
         return next(err);
       }
@@ -259,33 +274,95 @@ const login = [
 
       if (user.auth.verification.verified && user.auth.verification.code) {
         user.auth.verification.code = undefined;
-        await user.save();
       }
+
+      const refreshToken = uuidv4();
+      
+      user.auth.refreshToken.token = refreshToken;
+      user.auth.refreshToken.exp = Math.floor(Date.now()/1000 + 43200);
+
+      await user.save();
 
       const token = jwt.sign({
         id: user._id,
         username: user.profile.username,
         verified: user.auth.verification.verified
-      }, process.env.JWT_SECRET);
+      }, process.env.JWT_SECRET, { expiresIn: '15m' });
 
-      return res.status(200).json(token);
+      return res.status(200).json({ token, refreshToken });
     })(req, res);
   }
 ];
 
-const googleLogin = (req, res) => {
+const googleLogin = async (req, res) => {
   res.redirect('http://localhost:3000/auth/google/success');
-}
+};
 
-const googleSuccess = (req, res) => {
+const googleSuccess = async (req, res) => {
+  const { user } = req;
+
+  const refreshToken = uuidv4();
+
+  user.auth.refreshToken.token = refreshToken;
+  user.auth.refreshToken.exp = Math.floor(Date.now()/1000 + 43200);
+  await user.save();
+
   const token = jwt.sign({
-    id: req.user._id,
-    username: req.user.profile.username,
-    verified: req.user.auth.verification.verified
-  }, process.env.JWT_SECRET);
+    id: user._id,
+    username: user.profile.username,
+    verified: user.auth.verification.verified
+  }, process.env.JWT_SECRET, { expiresIn: '15m' });
   req.logout();
-  res.status(200).json(token);
-}
+  res.status(200).json({ token, refreshToken });
+};
+
+const renewToken = async (req, res, next) => {
+  try {
+    const user = await User.findOne(
+      { 'auth.refreshToken.token': req.body.refreshToken },
+      'auth.refreshToken.exp auth.verification.verified profile.username'
+    );
+
+    if (!user) return res.sendStatus(401);
+
+    if (user && user.auth.refreshToken.exp < Math.floor(Date.now()/1000)) {
+      user.auth.refreshToken.token = undefined;
+      user.auth.refreshToken.exp = undefined;
+      await user.save();
+      return res.sendStatus(401);
+    }
+
+    const refreshToken = uuidv4();
+
+    user.auth.refreshToken.token = refreshToken;
+    user.auth.refreshToken.exp = Math.floor(Date.now()/1000) + 43200;
+
+    await user.save();
+
+    const token = jwt.sign({
+      id: user._id,
+      username: user.profile.username,
+      verified: user.auth.verification.verified
+    }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+    res.status(200).json({ token, refreshToken });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const signOut = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(
+      req.body.userId,
+      { 'auth.refreshToken.token': undefined, 'auth.refreshToken.exp': undefined }
+    );
+
+    res.sendStatus(200);
+  } catch (err) {
+    next(err);
+  }
+};
 
 export default {
   signUp,
@@ -295,5 +372,7 @@ export default {
   emailVerification,
   login,
   googleLogin,
-  googleSuccess
+  googleSuccess,
+  renewToken,
+  signOut
 };

@@ -9,6 +9,8 @@ const router = express.Router();
 
 router.post('/signup', auth.signUp);
 
+router.post('/signout', auth.signOut);
+
 router.post('/resend-code', passport.authenticate('jwt', { session: false }), auth.resendVerificationCode);
 
 router.post('/forgot-password', auth.forgotPassword);
@@ -18,6 +20,8 @@ router.post('/reset-password', auth.resetPassword);
 router.post('/verify', passport.authenticate('jwt', { session: false }), auth.emailVerification);
 
 router.post('/login', auth.login);
+
+router.post('/renew-token', auth.renewToken);
 
 router.get('/google', passport.authenticate('google', {
   scope: [
