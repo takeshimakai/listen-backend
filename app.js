@@ -18,8 +18,8 @@ import friendsRouter from './routes/friends.js';
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
-app.use(session({ secret: 'very secret session', resave: false, saveUninitialized: true }));
+app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
@@ -33,4 +33,4 @@ app.use('/api/friends', passport.authenticate('jwt', { session: false }), friend
 
 connectMongoDB();
 socket(server);
-server.listen(5000, () => console.log('listening on port 5000'));
+server.listen(process.env.PORT || 5000, () => console.log('listening!'));
