@@ -295,7 +295,7 @@ const login = [
 ];
 
 const googleLogin = async (req, res) => {
-  res.redirect('http://localhost:3000/auth/google/success');
+  res.redirect(`${process.env.CLIENT_URL}/auth/google/success'`);
 };
 
 const googleSuccess = async (req, res) => {
