@@ -48,8 +48,6 @@ passport.use(new googleStrategy({
   try {
     let user = await User.findOne({ 'auth.email': profile.emails[0].value });
 
-    console.log(user);
-
     if (user && user.auth.googleId) {
       return done(null, user);
     }

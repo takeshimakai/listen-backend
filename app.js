@@ -18,8 +18,17 @@ import friendsRouter from './routes/friends.js';
 const app = express();
 const server = http.createServer(app);
 
+app.set('trust proxy', 1)
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
-app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    sameSite: 'none',
+    secure: true
+  }
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
