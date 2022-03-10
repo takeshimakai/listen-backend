@@ -24,12 +24,10 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
-  /*
   cookie: {
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     secure: process.env.NODE_ENV === 'production'
   }
-  */
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
