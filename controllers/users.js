@@ -1,5 +1,6 @@
 import expressValidator from 'express-validator';
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 
 import User from '../models/User.js';
 import Post from '../models/Post.js';
@@ -71,6 +72,8 @@ const createProfile = [
         return res.status(400).json(errors);
       }
 
+      const refreshToken = uuidv4();
+
       const data = {
         'profile.img': req.file
           ? {
@@ -82,7 +85,9 @@ const createProfile = [
         'profile.dob': req.body.dob,
         'profile.gender': req.body.gender,
         'profile.interests': req.body.interests,
-        'profile.problemTopics': req.body.problemTopics
+        'profile.problemTopics': req.body.problemTopics,
+        'auth.refreshToken.token': refreshToken,
+        'auth.refreshToken.exp': Math.floor(Date.now()/1000) + 43200
       };
 
       const user = await User.findByIdAndUpdate(
@@ -98,9 +103,9 @@ const createProfile = [
         id: user._id,
         username: user.profile.username,
         verified: user.auth.verification.verified
-      }, process.env.JWT_SECRET);
+      }, process.env.JWT_SECRET, { expiresIn: '15m' });
   
-      return res.status(200).json(token);
+      return res.status(200).json({ token, refreshToken });
     } catch (err) {
       next(err);
     }
