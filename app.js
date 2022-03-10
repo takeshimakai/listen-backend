@@ -18,15 +18,14 @@ import friendsRouter from './routes/friends.js';
 const app = express();
 const server = http.createServer(app);
 
-app.set('trust proxy', 1)
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
   cookie: {
-    sameSite: 'none',
-    secure: true
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    secure: process.env.NODE_ENV === 'production'
   }
 }));
 app.use(express.json());
