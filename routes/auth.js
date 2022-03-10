@@ -27,7 +27,7 @@ router.get('/google', passport.authenticate('google', {
   scope: [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile'
-  ],
+  ]
 }));
 
 router.get('/google/redirect', passport.authenticate('google'), auth.googleLogin);

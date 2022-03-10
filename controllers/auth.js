@@ -1,7 +1,6 @@
 import expressValidator from 'express-validator';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
-import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 import transporter from '../config/nodemailer.js';
@@ -9,6 +8,7 @@ import transporter from '../config/nodemailer.js';
 import User from '../models/User.js';
 
 import generateCode from '../utils/generateCode.js';
+import generateJWT from '../utils/generateJWT.js';
 
 const { body, validationResult } = expressValidator;
 
@@ -68,11 +68,7 @@ const signUp = [
 
       await newUser.save();
 
-      const token = jwt.sign(
-        { id: newUser._id, verified: newUser.auth.verification.verified },
-        process.env.JWT_SECRET,
-        { expiresIn: '15m' }
-      );
+      const token = generateJWT(newUser);
 
       await transporter.sendMail({
         from: '"Listen" <listen.app.test@gmail.com>',
@@ -202,11 +198,7 @@ const resetPassword = [
         }
       );
 
-      const token = jwt.sign({
-        id: user._id,
-        username: user.profile.username,
-        verified: user.auth.verification.verified
-      }, process.env.JWT_SECRET, { expiresIn: '15m' });
+      const token = generateJWT(user);
 
       return res.status(200).json({ token, refreshToken });
     } catch (err) {
@@ -233,11 +225,7 @@ const emailVerification = async (req, res, next) => {
 
     await user.save();
 
-    const token = jwt.sign(
-      { id: user._id, verified: user.auth.verification.verified },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' }
-    );
+    const token = generateJWT(user);
 
     return res.status(200).json({ token, refreshToken });
   } catch (err) {
@@ -283,11 +271,7 @@ const login = [
 
       await user.save();
 
-      const token = jwt.sign({
-        id: user._id,
-        username: user.profile.username,
-        verified: user.auth.verification.verified
-      }, process.env.JWT_SECRET, { expiresIn: '15m' });
+      const token = generateJWT(user);
 
       return res.status(200).json({ token, refreshToken });
     })(req, res);
@@ -307,11 +291,8 @@ const googleSuccess = async (req, res) => {
   user.auth.refreshToken.exp = Math.floor(Date.now()/1000 + 43200);
   await user.save();
 
-  const token = jwt.sign({
-    id: user._id,
-    username: user.profile.username,
-    verified: user.auth.verification.verified
-  }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const token = generateJWT(user);
+
   req.logout();
   res.status(200).json({ token, refreshToken });
 };
@@ -339,11 +320,7 @@ const renewToken = async (req, res, next) => {
 
     await user.save();
 
-    const token = jwt.sign({
-      id: user._id,
-      username: user.profile.username,
-      verified: user.auth.verification.verified
-    }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const token = generateJWT(user);
 
     res.status(200).json({ token, refreshToken });
   } catch (err) {
