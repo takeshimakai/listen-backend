@@ -2,6 +2,8 @@ import expressValidator from 'express-validator';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
+import generateJWT from '../utils/generateJWT.js';
+
 import User from '../models/User.js';
 import Post from '../models/Post.js';
 import Comment from '../models/Comment.js';
@@ -99,11 +101,7 @@ const createProfile = [
         }
       );
   
-      const token = jwt.sign({
-        id: user._id,
-        username: user.profile.username,
-        verified: user.auth.verification.verified
-      }, process.env.JWT_SECRET, { expiresIn: '15m' });
+      const token = generateJWT(user);
   
       return res.status(200).json({ token, refreshToken });
     } catch (err) {
