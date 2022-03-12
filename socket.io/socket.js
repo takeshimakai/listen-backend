@@ -1,5 +1,5 @@
 import { Server } from 'socket.io';
-import passport from 'passport';
+import jwt from 'jsonwebtoken';
 
 import friends from './friends.js';
 import chat from './chat.js';
@@ -8,17 +8,19 @@ import directMessage from './directMessage.js';
 const socket = (server) => {
   const io = new Server(server, { cors: { origin: process.env.CLIENT_URL } });
 
-  const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+  io.use((socket, next) => {
+    jwt.verify(socket.handshake.auth.token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return next(new Error('Unauthorized'));
+      }
 
-  io.use(wrap(passport.authenticate('jwt', { session: false })));
+      const { id, username } = decoded;
 
-  io.use(async (socket, next) => {
-    const { id, username } = socket.request.user;
+      socket.userID = id;
+      socket.username = username;
 
-    socket.userID = id;
-    socket.username = username;
-
-    next();
+      next();
+    });
   });
 
   io.on('connection', (socket) => {

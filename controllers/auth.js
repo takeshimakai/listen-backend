@@ -304,7 +304,9 @@ const renewToken = async (req, res, next) => {
       'auth.refreshToken.exp auth.verification.verified profile.username'
     );
 
-    if (!user) return res.sendStatus(401);
+    if (!user) {
+      return res.sendStatus(401);
+    }
 
     if (user && user.auth.refreshToken.exp < Math.floor(Date.now()/1000)) {
       user.auth.refreshToken.token = undefined;
