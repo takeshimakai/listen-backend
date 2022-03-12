@@ -15,12 +15,14 @@ const getProfile = async (req, res, next) => {
     if (req.user.id === req.params.userId) {
       const user = await User.findById(req.user.id, 'profile').lean();
 
-      user.profile.problemTopics.sort((a, b) => {
-        if (a === 'Other') return 1;
-        if (b === 'Other') return -1;
-        if (a < b) return -1;
-        if (a > b) return 1;
-      });
+      if (user.profile.problemTopics) {
+        user.profile.problemTopics.sort((a, b) => {
+          if (a === 'Other') return 1;
+          if (b === 'Other') return -1;
+          if (a < b) return -1;
+          if (a > b) return 1;
+        });
+      }
 
       return res.status(200).json(user);
     }
