@@ -23,6 +23,10 @@ async (username, password, done) => {
       return done(null, false, { email: 'This email is not registered.' });
     }
 
+    if (user && user.auth.googleId) {
+      return done(null, false, { email: 'Account created with Google.' });
+    }
+
     const isValidPw = await bcrypt.compare(password, user.auth.password);
 
     if (!isValidPw) {
