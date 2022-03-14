@@ -27,8 +27,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 5000
+    secure: process.env.NODE_ENV === 'production'
   }
 }));
 app.use(express.json());
