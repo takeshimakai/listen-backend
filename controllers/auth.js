@@ -279,6 +279,7 @@ const login = [
 ];
 
 const googleLogin = (req, res) => {
+  res.cookie('test', 'test');
   res.redirect(`${process.env.CLIENT_URL}/auth/google/success`);
 };
 
