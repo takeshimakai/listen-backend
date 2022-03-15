@@ -1,5 +1,4 @@
 import expressValidator from 'express-validator';
-import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 import generateJWT from '../utils/generateJWT.js';

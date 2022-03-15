@@ -285,6 +285,10 @@ const googleLogin = async (req, res) => {
 const googleSuccess = async (req, res) => {
   const { user } = req;
 
+  if (!user) {
+    return res.sendStatus(500);
+  }
+
   const refreshToken = uuidv4();
 
   user.auth.refreshToken.token = refreshToken;
