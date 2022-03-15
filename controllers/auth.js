@@ -278,7 +278,7 @@ const login = [
   }
 ];
 
-const googleLogin = async (req, res) => {
+const googleLogin = (req, res) => {
   res.redirect(`${process.env.CLIENT_URL}/auth/google/success`);
 };
 
