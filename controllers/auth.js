@@ -1,6 +1,7 @@
 import expressValidator from 'express-validator';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 import transporter from '../config/nodemailer.js';
@@ -279,16 +280,19 @@ const login = [
 ];
 
 const googleLogin = (req, res) => {
-  res.cookie('test', 'test');
-  res.redirect(`${process.env.CLIENT_URL}/auth/google/success`);
-};
-
-const googleSuccess = async (req, res) => {
   const { user } = req;
 
   if (!user) {
     return res.sendStatus(500);
   }
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: 5 });
+
+  res.redirect(`${process.env.CLIENT_URL}/auth/google/success?token=${token}`);
+};
+
+const googleSuccess = async (req, res) => {
+  const user = await User.findById(req.user.id, 'auth profile.username');
 
   const refreshToken = uuidv4();
 
@@ -298,7 +302,6 @@ const googleSuccess = async (req, res) => {
 
   const token = generateJWT(user);
 
-  req.logout();
   res.status(200).json({ token, refreshToken });
 };
 

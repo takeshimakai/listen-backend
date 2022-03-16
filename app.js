@@ -3,7 +3,6 @@ import 'dotenv/config';
 import express from 'express';
 import passport from 'passport';
 import cors from 'cors';
-import session from 'express-session';
 import http from 'http';
 
 import socket from './socket.io/socket.js';
@@ -18,22 +17,10 @@ import friendsRouter from './routes/friends.js';
 const app = express();
 const server = http.createServer(app);
 
-app.set('trust proxy', 1);
-
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    secure: process.env.NODE_ENV === 'production'
-  }
-}));
+app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.use('/api/auth', authRouter);
 app.use('/api/users', passport.authenticate('jwt', { session: false }), usersRouter);

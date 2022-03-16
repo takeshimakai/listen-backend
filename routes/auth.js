@@ -27,11 +27,12 @@ router.get('/google', passport.authenticate('google', {
   scope: [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile'
-  ]
+  ],
+  session: false
 }));
 
-router.get('/google/redirect', passport.authenticate('google'), auth.googleLogin);
+router.get('/google/redirect', passport.authenticate('google', { session: false }), auth.googleLogin);
 
-router.get('/google/success', auth.googleSuccess);
+router.post('/google/success', passport.authenticate('jwt', { session: false }), auth.googleSuccess);
 
 export default router;

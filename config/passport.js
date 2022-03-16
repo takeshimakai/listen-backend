@@ -79,10 +79,4 @@ passport.use(new googleStrategy({
   } catch (err) {
     done(err);
   }
-}))
-
-passport.serializeUser((user, done) => done(null, user.id));
-
-passport.deserializeUser((id, done) => {
-  User.findById(id, 'auth profile.username', (err, user) => done(err, user));
-})
+}));
