@@ -31,8 +31,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "engines": {
-    "node": "16.13.1"
-  }
+  "license": "ISC"
 }
